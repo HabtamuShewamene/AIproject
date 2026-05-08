@@ -1,0 +1,48 @@
+# Virtual environments
+venv/
+.env/
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Distribution/build
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Pytest cache
+.pytest_cache/
+
+# Mypy
+.mypy_cache/
+
+# VS Code and IDEs
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python data files
+*.sqlite3
+*.db
+
+# Serialized models
+models/*.pkl
+
+# Logs
+*.log
+
+# User-specific
+*.env
+
+# Ignore the nested repo directory if you don't want to include it in root repo
+# sentiment-analysis/  # uncomment to ignore the nested repo
