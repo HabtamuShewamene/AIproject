@@ -1,1 +1,10 @@
 pandas
+numpy
+flask
+transformers
+torch
+scikit-learn
+datasets
+jupyter
+matplotlib
+seaborn
