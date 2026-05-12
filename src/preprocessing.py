@@ -1,8 +1,5 @@
 import pandas as pd
 import re
-import nltk
-import spacy
-from nltk.corpus import stopwords
 from sklearn.utils import shuffle
 from pathlib import Path
 
@@ -10,140 +7,120 @@ from pathlib import Path
 # PATHS
 # -----------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
-DATA_PATH = BASE_DIR / "data" / "raw" / "sentiment140.csv"
-OUT_PATH = BASE_DIR / "data" / "processed" / "cleaned_data.csv"
-
-OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+RAW_PATH = BASE_DIR / "data" / "raw" / "training.1600000.processed.noemoticon.csv"
+OUT_PATH = BASE_DIR / "data" / "processed" / "clean_data.csv"
 
 # -----------------------
-# NLP SETUP
+# CLEAN TEXT (BERT-OPTIMIZED)
 # -----------------------
-nltk.download('stopwords')
+def clean_text(text):
+    if pd.isna(text):
+        return ""
 
-stop_words = set(stopwords.words('english'))
+    text = str(text)
 
-print("⏳ Loading spaCy model...")
-nlp = spacy.load("en_core_web_sm")
+    # Lowercase
+    text = text.lower()
+
+    # Remove URLs
+    text = re.sub(r"http\S+|www\S+|https\S+", "", text)
+
+    # Remove mentions
+    text = re.sub(r"@\w+", "", text)
+
+    # Remove hashtag symbol ONLY (keep word)
+    text = re.sub(r"#", "", text)
+
+    # Keep letters, numbers, punctuation (important for sentiment)
+    text = re.sub(r"[^a-zA-Z0-9\s.,!?']", "", text)
+
+    # Normalize spaces
+    text = re.sub(r"\s+", " ", text).strip()
+
+    return text
 
 # -----------------------
 # LOAD DATA
 # -----------------------
-df = pd.read_csv(
-    DATA_PATH,
-    encoding="latin-1",
-    header=None,
-    low_memory=False
-)
+def load_data():
+    print("📂 Loading Sentiment140...")
 
-print("📊 Raw shape:", df.shape)
+    # Original dataset has NO header
+    df = pd.read_csv(
+        RAW_PATH,
+        encoding="latin-1",
+        header=None,
+        low_memory=False
+    )
 
-# -----------------------
-# DETECT FORMAT
-# -----------------------
-if df.shape[1] == 6:
-    print("✅ Sentiment140 format")
+    # Assign correct column names
+    df.columns = ["target", "id", "date", "flag", "user", "text"]
 
-    df.columns = ['sentiment', 'id', 'date', 'query', 'user', 'text']
+    print(f"📊 Raw shape: {df.shape}")
+    print(df.head(3))
 
-    df = df[['sentiment', 'text']]
-
-    df['sentiment'] = df['sentiment'].replace({
-        0: 0,
-        4: 1
-    })
-
-elif df.shape[1] == 2:
-    print("✅ Simple format")
-
-    df.columns = ['text', 'sentiment']
-
-    df = df[['sentiment', 'text']]
-
-    df['sentiment'] = df['sentiment'].replace({
-        0: 0,
-        1: 1
-    })
-
-else:
-    raise ValueError("❌ Unknown dataset format")
+    return df
 
 # -----------------------
-# CLEANING FUNCTION
+# PREPROCESS
 # -----------------------
-def clean_text(text):
+def preprocess(df):
+    print("🧹 Cleaning data...")
 
-    if pd.isna(text):
-        return ""
+    # Keep only required columns
+    df = df[["target", "text"]].copy()
 
-    text = text.lower()
+    # Keep valid labels only
+    df = df[df["target"].isin([0, 4])]
 
-    # remove urls
-    text = re.sub(r'http\S+|www\S+', '', text)
+    # Convert labels → 0 / 1
+    df["label"] = df["target"].apply(lambda x: 0 if x == 0 else 1)
 
-    # remove mentions
-    text = re.sub(r'@\w+', '', text)
+    # Drop missing text
+    df = df.dropna(subset=["text"])
 
-    # remove hashtags symbol only
-    text = re.sub(r'#', '', text)
+    # Ensure string
+    df["text"] = df["text"].astype(str)
 
-    # remove non letters
-    text = re.sub(r'[^a-z\s]', '', text)
+    # Apply cleaning
+    df["text"] = df["text"].apply(clean_text)
 
-    # remove extra spaces
-    text = re.sub(r'\s+', ' ', text).strip()
+    # Remove empty rows (SAFE)
+    df = df[df["text"].notna()]
+    df = df[df["text"].str.strip() != ""]
 
-    # spaCy processing
-    doc = nlp(text)
+    # ⚠️ Keep duplicates for model strength (important for deep learning)
+    # df = df.drop_duplicates(subset=["text"])
 
-    words = []
+    # Shuffle dataset
+    df = shuffle(df, random_state=42)
 
-    for token in doc:
+    # Final format
+    df = df[["text", "label"]]
 
-        lemma = token.lemma_.strip()
+    print(f"✅ Final dataset shape: {df.shape}")
+    print(df.head(5))
+    print("\n📊 Label distribution:")
+    print(df["label"].value_counts())
 
-        if (
-            lemma not in stop_words
-            and len(lemma) > 2
-            and lemma.isalpha()
-        ):
-            words.append(lemma)
-
-    return " ".join(words)
-
-# -----------------------
-# APPLY CLEANING
-# -----------------------
-print("⏳ Cleaning text...")
-
-df['clean_text'] = df['text'].apply(clean_text)
-
-# -----------------------
-# REMOVE EMPTY ROWS
-# -----------------------
-df = df[df['clean_text'].str.len() > 0]
-
-# minimum 2 words
-df = df[df['clean_text'].str.split().str.len() >= 2]
-
-df = df.dropna()
-
-# -----------------------
-# SHUFFLE
-# -----------------------
-df = shuffle(df, random_state=42)
+    return df
 
 # -----------------------
 # SAVE
 # -----------------------
-df.to_csv(OUT_PATH, index=False)
+def save_data(df):
+    OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+    df.to_csv(OUT_PATH, index=False)
+    print(f"💾 Saved to: {OUT_PATH}")
 
 # -----------------------
-# OUTPUT
+# MAIN
 # -----------------------
-print("\n✅ PREPROCESSING COMPLETE")
+def main():
+    df = load_data()
+    df_clean = preprocess(df)
+    save_data(df_clean)
+    print("🚀 Preprocessing completed successfully!")
 
-print(df[['sentiment', 'clean_text']].head())
-
-print("\nFinal shape:", df.shape)
-
-print("\n💾 Saved to:", OUT_PATH)
+if __name__ == "__main__":
+    main()
