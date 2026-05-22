@@ -1,0 +1,1 @@
+Checkpoint note 49: Note about using mixed precision for faster BERT training.
