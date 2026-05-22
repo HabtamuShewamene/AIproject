@@ -1,0 +1,1 @@
+Checkpoint note 58: Suggestion to use smaller subsets for quick iterations.
