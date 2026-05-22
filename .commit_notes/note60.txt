@@ -1,0 +1,1 @@
+Checkpoint note 60: Reminder to monitor GPU memory and batch size trade-offs.
