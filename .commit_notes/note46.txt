@@ -1,0 +1,1 @@
+Checkpoint note 46: Reminder to keep model artifacts out of repo; use .gitignore patterns.
