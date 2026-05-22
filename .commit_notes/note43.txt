@@ -1,0 +1,1 @@
+Checkpoint note 43: Updated note about preprocessing assumptions and column names.
