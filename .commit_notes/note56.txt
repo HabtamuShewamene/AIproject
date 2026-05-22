@@ -1,0 +1,1 @@
+Checkpoint note 56: Reminder to validate class balance before training.
