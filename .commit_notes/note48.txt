@@ -1,0 +1,1 @@
+Checkpoint note 48: Observations on tokenization choices and max length trade-offs.
