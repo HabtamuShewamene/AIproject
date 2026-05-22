@@ -1,0 +1,1 @@
+Checkpoint note 44: Documented expected raw data encoding and newline handling.
