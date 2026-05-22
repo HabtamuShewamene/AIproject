@@ -1,0 +1,1 @@
+Checkpoint note 61: Notes on label mapping and consistent encoding for classes.
