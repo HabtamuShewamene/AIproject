@@ -1,0 +1,1 @@
+Checkpoint note 86: Note about class balancing options (undersample/oversample/weights).
