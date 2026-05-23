@@ -1,0 +1,1 @@
+Checkpoint note 85: Document handling of URLs and @mentions in tweet preprocessing.
