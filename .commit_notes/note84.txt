@@ -1,0 +1,1 @@
+Checkpoint note 84: Recommend consistent stopword list shared between vectorizers.
