@@ -1,0 +1,1 @@
+Checkpoint note 87: Reminder to version tokenizer vocabulary alongside model artifacts.
