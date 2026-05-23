@@ -1,0 +1,1 @@
+Checkpoint note 83: Clarify emoji handling in preprocessing and mapping to tokens.
