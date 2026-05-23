@@ -1,0 +1,1 @@
+Checkpoint note 90: Ensure preprocessing is deterministic and record versioned transforms.
