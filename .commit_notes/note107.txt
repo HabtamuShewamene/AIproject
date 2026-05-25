@@ -1,0 +1,2 @@
+Caching strategy: Add output caching layer for frequently analyzed text samples.
+Reduces redundant inference calls and improves overall system response latency.
