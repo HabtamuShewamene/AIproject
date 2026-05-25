@@ -1,1 +1,2 @@
-Checkpoint note 91: Allow toggling stopword removal for ablation studies; document results.
+Alternative loss function: Evaluate focal loss for handling hard negative examples.
+Particularly useful when model struggles with minority sentiment classes.
