@@ -1,0 +1,2 @@
+Cross-validation strategy: Implement k-fold cross-validation for stability assessment.
+Helps identify if model performance varies significantly across data splits.
