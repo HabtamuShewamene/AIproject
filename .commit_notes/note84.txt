@@ -1,1 +1,2 @@
-Checkpoint note 84: Recommend consistent stopword list shared between vectorizers.
+Implementation details: Learning rate scheduling with warmup and cosine annealing.
+Helps stabilize training and achieve better final performance on validation set.
