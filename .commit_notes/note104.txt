@@ -1,0 +1,2 @@
+Resource optimization note: Profile memory usage and compute requirements thoroughly.
+Document minimum hardware requirements for model deployment in production.
