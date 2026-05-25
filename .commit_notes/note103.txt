@@ -1,0 +1,2 @@
+Domain adaptation experiment: Test transferability to different text domains or platforms.
+Twitter language patterns differ from reviews; document domain shift effects.
