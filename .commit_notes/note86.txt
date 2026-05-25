@@ -1,1 +1,2 @@
-Checkpoint note 86: Note about class balancing options (undersample/oversample/weights).
+Training best practice: Implement early stopping based on validation loss plateau.
+Patience of 3-5 epochs is a reasonable default for this sentiment task.
