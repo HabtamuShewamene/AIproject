@@ -1,1 +1,2 @@
-Checkpoint note 92: List text normalization rules: lowercasing, accent removal, whitespace normalizing.
+Post-processing idea: Implement confidence threshold for uncertain predictions.
+Option to mark low-confidence samples for human review or additional analysis.
