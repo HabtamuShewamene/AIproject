@@ -1,0 +1,2 @@
+Temporal drift consideration: Monitor model performance over time as language evolves.
+Implement periodic retraining pipeline when performance metrics degrade on new data.

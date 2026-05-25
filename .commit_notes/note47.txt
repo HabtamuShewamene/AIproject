@@ -1,0 +1,1 @@
+Checkpoint note 47: Note about dependency pinning for stable training runs.

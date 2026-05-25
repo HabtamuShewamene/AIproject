@@ -1,0 +1,2 @@
+API design decision: Plan REST endpoint structure for inference requests and responses.
+Include proper error handling and validation for input preprocessing edge cases.

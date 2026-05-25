@@ -1,0 +1,2 @@
+API error message improvements: return consistent error codes and human-friendly messages for invalid input.
+Examples and schema validation notes.

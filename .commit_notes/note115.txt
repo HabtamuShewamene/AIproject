@@ -1,0 +1,2 @@
+Hyperparameter tuning ranges: learning rate, batch size, weight decay, and scheduler choices tested.
+Summarize best-performing combinations.

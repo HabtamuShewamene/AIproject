@@ -1,0 +1,2 @@
+Alternative loss function: Evaluate focal loss for handling hard negative examples.
+Particularly useful when model struggles with minority sentiment classes.

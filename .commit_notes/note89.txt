@@ -1,0 +1,2 @@
+Architectural decision: Consider batch normalization layer placement for stability.
+Monitor activation distributions during training to detect internal covariate shift.

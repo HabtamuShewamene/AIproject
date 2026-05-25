@@ -1,0 +1,2 @@
+Regularization strategy: Apply weight decay to prevent overfitting on small datasets.
+Typical values range from 0.01 to 0.1 depending on model size.

@@ -1,0 +1,2 @@
+Data handling: Calculate class weights to handle imbalanced sentiment distribution.
+Adjust loss function weights inversely proportional to class frequencies.

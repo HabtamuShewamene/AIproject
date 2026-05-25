@@ -1,0 +1,2 @@
+Adversarial robustness test: Evaluate model resilience against intentionally crafted inputs.
+Check performance on negation handling and sentiment-flipping text patterns.

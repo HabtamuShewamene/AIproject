@@ -1,0 +1,18 @@
+from dotenv import load_dotenv
+import os
+
+# Load environment variables
+load_dotenv()
+
+# Twitter/X API
+TWITTER_BEARER_TOKEN = os.getenv("TWITTER_BEARER_TOKEN")
+
+# Model path
+MODEL_PATH = os.getenv(
+    "MODEL_PATH",
+    "models/bert_sentiment"
+)
+
+# API settings
+API_TITLE = "Twitter/X Sentiment Analysis API"
+API_VERSION = "1.0.0"

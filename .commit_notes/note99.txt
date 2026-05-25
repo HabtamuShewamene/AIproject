@@ -1,0 +1,2 @@
+Fine-tuning strategy: Layer-wise learning rate scheduling can improve convergence speed.
+Lower learning rates for early BERT layers preserve pretrained knowledge better.

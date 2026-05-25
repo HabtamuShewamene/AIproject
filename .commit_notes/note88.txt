@@ -1,0 +1,2 @@
+Hyperparameter selection: Fine-tune dropout rates for attention and dense layers.
+Start with 0.1 and adjust based on validation performance and overfitting signals.

@@ -1,0 +1,2 @@
+Post-processing idea: Implement confidence threshold for uncertain predictions.
+Option to mark low-confidence samples for human review or additional analysis.

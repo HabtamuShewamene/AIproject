@@ -1,0 +1,2 @@
+Sensitive token handling: mask or obfuscate PII before logging or storing intermediate artifacts.
+Guidelines for safe telemetry.

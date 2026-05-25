@@ -1,0 +1,2 @@
+Technical note: Using gradient accumulation to simulate larger batch sizes.
+Helps with limited GPU memory constraints during model training.

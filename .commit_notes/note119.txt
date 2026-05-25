@@ -1,0 +1,2 @@
+CI smoke tests for training: quick run with small dataset, health checks, and successful checkpoint save.
+Failure thresholds and alerts.

@@ -1,0 +1,2 @@
+Sarcasm detection challenge: Note that sarcasm detection requires context beyond token analysis.
+May need specialized preprocessing or additional training data for improvement.

@@ -1,0 +1,2 @@
+Attention visualization: Add mechanism to inspect model attention weights for interpretability.
+Helps understand which tokens contribute most to sentiment classification decisions.

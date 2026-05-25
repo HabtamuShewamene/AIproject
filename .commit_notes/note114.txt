@@ -1,0 +1,2 @@
+Benefits and caveats of mixed-precision training: memory savings vs numerical stability considerations.
+Record examples and when to enable AMP.

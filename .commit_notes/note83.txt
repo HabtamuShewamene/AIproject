@@ -1,0 +1,2 @@
+Development notes: Strategy for saving model checkpoints during training iterations.
+Include epoch, loss, and validation metrics in checkpoint naming.
