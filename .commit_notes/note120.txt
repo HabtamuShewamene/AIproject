@@ -1,0 +1,2 @@
+Resource scaling guidelines: GPU memory estimation, recommended instance types, and autoscaling triggers.
+Cost vs latency trade-offs.
