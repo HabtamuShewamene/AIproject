@@ -1,0 +1,2 @@
+Model size comparison: Benchmark different BERT architectures for inference speed trade-offs.
+Consider distilled models like DistilBERT for production deployment scenarios.
