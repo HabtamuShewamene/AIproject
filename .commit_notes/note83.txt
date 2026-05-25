@@ -1,1 +1,2 @@
-Checkpoint note 83: Clarify emoji handling in preprocessing and mapping to tokens.
+Development notes: Strategy for saving model checkpoints during training iterations.
+Include epoch, loss, and validation metrics in checkpoint naming.
