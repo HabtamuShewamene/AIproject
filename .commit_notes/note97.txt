@@ -1,0 +1,2 @@
+Confusion matrix analysis: Generate detailed per-class performance metrics breakdown.
+Reveals if certain sentiment categories are systematically harder to predict.
