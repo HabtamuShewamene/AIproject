@@ -1,1 +1,2 @@
-Checkpoint note 89: Guidance on safe token truncation to avoid label leakage.
+Architectural decision: Consider batch normalization layer placement for stability.
+Monitor activation distributions during training to detect internal covariate shift.
