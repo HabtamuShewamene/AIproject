@@ -1,0 +1,2 @@
+Checkpoint naming conventions: include epoch, step, val_loss, and timestamp for reproducibility.
+Describe rotation and retention policies.
