@@ -1,0 +1,2 @@
+Data augmentation strategies for text: synonym replacement, back-translation, and paraphrasing experiments.
+Include expected trade-offs and sample parameters.
