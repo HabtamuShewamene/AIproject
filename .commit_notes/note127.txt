@@ -1,0 +1,2 @@
+Annotation guidelines: labeling rules, edge-case handling, and inter-annotator agreement metrics.
+Version data schema for labels.
