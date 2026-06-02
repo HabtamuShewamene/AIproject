@@ -1,0 +1,2 @@
+Reproducibility checklist: seed setting, environment capture, and exact command lines for experiments.
+Attach example run script.
