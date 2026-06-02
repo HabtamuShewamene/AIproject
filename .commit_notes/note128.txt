@@ -1,0 +1,2 @@
+Data validation rules: schema checks, null handling, and drift detection metrics.
+Automated test examples for pipeline gates.
