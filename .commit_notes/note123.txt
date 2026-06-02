@@ -1,0 +1,2 @@
+Adversarial training considerations: attack types to defend against and training loops.
+Include evaluation against FGSM and PGD variants.

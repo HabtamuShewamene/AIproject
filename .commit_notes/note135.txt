@@ -1,0 +1,2 @@
+Prediction response schema updates: include `model_version`, `processing_time_ms`, and `explainability` fields.
+Backward compatibility notes.

@@ -1,0 +1,2 @@
+Inference latency benchmarks: dataset, hardware, batch sizes, and observed p50/p95 metrics.
+Comparison table for candidate models.

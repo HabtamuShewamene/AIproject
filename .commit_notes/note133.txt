@@ -1,0 +1,2 @@
+Backup strategy for model artifacts: retention policy, encrypted storage, and recovery test schedule.
+Include retention for checkpoints vs final releases.

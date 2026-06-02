@@ -1,0 +1,2 @@
+Model size and FLOPs: record parameter counts, estimated FLOPs, and memory footprint per batch size.
+Useful for deployment planning.

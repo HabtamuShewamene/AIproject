@@ -1,0 +1,2 @@
+Retraining schedule: periodic vs event-driven retraining triggers and dataset windows.
+Cost estimation for each retrain.

@@ -1,0 +1,2 @@
+Distributed training checklist: NCCL settings, synchronized batch norm, and checkpointing.
+Notes on multi-GPU vs multi-node trade-offs.

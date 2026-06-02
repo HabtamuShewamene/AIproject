@@ -1,0 +1,2 @@
+Hyperopt setup and search space design: parameter ranges and early-stop heuristics.
+Include resource budget recommendations.

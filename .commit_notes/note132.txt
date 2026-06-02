@@ -1,0 +1,2 @@
+Docker image recommendations: base image, reproducible builds, and multi-stage optimization.
+Security scanning step in CI.
