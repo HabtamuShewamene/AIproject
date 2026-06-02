@@ -1,0 +1,2 @@
+Post-training error analysis steps: confusions by class, mislabeled examples, and sample inspection workflow.
+Automated report generation ideas.
