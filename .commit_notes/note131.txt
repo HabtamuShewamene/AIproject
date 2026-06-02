@@ -1,0 +1,2 @@
+Latency SLOs and monitoring: p50/p95/p99 targets and alert thresholds.
+On-call playbook for SLO breaches.
