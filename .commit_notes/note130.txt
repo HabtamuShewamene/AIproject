@@ -1,0 +1,2 @@
+Structured logging examples: JSON fields for request_id, latency_ms, model_version.
+Search queries for common failure patterns.
