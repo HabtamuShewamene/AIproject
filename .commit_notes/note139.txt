@@ -1,0 +1,2 @@
+Model versioning scheme: semantic versioning for models, compatibility guarantees, and migration notes.
+Mapping to API versions.
