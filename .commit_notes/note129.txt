@@ -1,0 +1,2 @@
+Secrets management: store credentials in vault, avoid logging keys, and rotate regularly.
+Link to access policy.
