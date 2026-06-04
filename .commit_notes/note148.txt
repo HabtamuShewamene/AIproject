@@ -1,0 +1,1 @@
+Audit logging: store minimal prediction metadata for audits while preserving user privacy.
