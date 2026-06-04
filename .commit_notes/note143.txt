@@ -1,0 +1,1 @@
+Evaluation protocol: define test splits, metrics, and confidence interval reporting for experiments.
