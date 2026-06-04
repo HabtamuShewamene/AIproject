@@ -16,3 +16,5 @@ deep-translator
 langdetect
 pytest
 httpx
+# other deps
+watchdog>=2.1.0

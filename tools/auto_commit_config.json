@@ -1,0 +1,6 @@
+{
+  "push": true,
+  "branch": "",
+  "debounce_seconds": 2.0,
+  "ignored_paths": [".git", ".venv", "venv", "models", "data/raw", "data/processed"]
+}
