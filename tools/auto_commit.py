@@ -34,7 +34,21 @@ def load_config():
         "push": True,
         "branch": "",
         "debounce_seconds": 2.0,
-        "ignored_paths": [".git", ".venv", "venv", "models", "data/raw", "data/processed"]
+        "ignored_paths": [
+            ".git",
+            ".venv",
+            "venv",
+            "models",
+            "data/raw",
+            "data/processed",
+            "__pycache__",
+            ".pytest_cache",
+            "backend.log",
+            "backend-error.log",
+            "frontend.log",
+            "frontend-error.log",
+        ],
+        "watch_paths": ["app", "src", "tests", "main.py", "README.md", "requirements.txt", "tools"],
     }
     if CONFIG_PATH.exists():
         try:
@@ -74,8 +88,18 @@ class DebouncedCommitter:
             self._changed.clear()
         if not files:
             return
-        # Stage changes
-        res = run_git("add", "-A")
+        watch_paths = self.cfg.get("watch_paths") or []
+        staged_files = []
+        for path in files:
+            rel = Path(path).resolve().relative_to(ROOT)
+            if watch_paths and not any(str(rel).startswith(p) for p in watch_paths):
+                continue
+            staged_files.append(str(rel))
+        if not staged_files:
+            logger.info("No watch-listed files changed; skipping commit")
+            return
+        # Stage only the watched files that changed.
+        res = run_git("add", "--", *staged_files)
         if res.returncode != 0:
             logger.error("git add failed: %s", res.stderr)
             return
@@ -83,7 +107,7 @@ class DebouncedCommitter:
         if not status.stdout.strip():
             logger.info("No changes to commit")
             return
-        message = f"chore(auto): auto-commit - changed files: {', '.join(Path(p).name for p in files)}"
+        message = f"chore(auto): auto-commit - changed files: {', '.join(Path(p).name for p in staged_files)}"
         # Commit
         res = run_git("commit", "-m", message)
         if res.returncode == 0:
