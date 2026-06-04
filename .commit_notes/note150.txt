@@ -1,0 +1,1 @@
+Health checks: implement model heartbeat, memory usage, and latency sampling for observability.
