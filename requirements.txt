@@ -14,6 +14,7 @@ tweepy
 python-dotenv
 deep-translator
 langdetect
+apify-client
 pytest
 httpx
 # other deps
