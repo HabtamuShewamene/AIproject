@@ -1,0 +1,20 @@
+{
+  "push": true,
+  "branch": "",
+  "debounce_seconds": 2.0,
+  "ignored_paths": [
+    ".git",
+    ".venv",
+    "venv",
+    "models",
+    "data/raw",
+    "data/processed",
+    "__pycache__",
+    ".pytest_cache",
+    "backend.log",
+    "backend-error.log",
+    "frontend.log",
+    "frontend-error.log"
+  ],
+  "watch_paths": ["app", "src", "tests", "main.py", "README.md", "requirements.txt", "tools"]
+}

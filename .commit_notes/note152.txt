@@ -1,0 +1,1 @@
+Checkpoint: finalize 10-commit mini-batch covering eval, infra, tuning, and monitoring notes.

@@ -3,3 +3,10 @@ data/processed/*.csv
 models/*.pkl
 models/bert_sentiment/
 sentiment-api/
+.venv/
+__pycache__/
+*.pyc
+*.log
+.pytest_cache/
+.env
+frontend/
