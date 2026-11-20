@@ -41,5 +41,6 @@ credentials/
 *.dump
 *.bak
 *.backup
+*.zip
 
 frontend/
