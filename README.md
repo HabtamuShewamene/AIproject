@@ -14,12 +14,12 @@ This project is a sentiment analysis system built around a fine-tuned BERT model
 
 ## Tech Stack
 
-- FastAPI
-- Transformers
-- PyTorch
-- scikit-learn
-- pandas
-- Tweepy
+- Python 3.11–3.13
+- FastAPI and Uvicorn
+- Hugging Face Transformers and PyTorch
+- pandas, NumPy, scikit-learn, and Hugging Face Datasets
+- Apify client for the current social collection adapter
+- `uv` and `pyproject.toml` for environment and dependency management
 
 ## Project Structure
 
@@ -32,29 +32,35 @@ This project is a sentiment analysis system built around a fine-tuned BERT model
 
 ## Installation
 
-Create and activate a virtual environment, then install dependencies:
+Install `uv` if it is not already available, then create the project environment and install the development dependencies from the project configuration:
 
 ```bash
-pip install -r requirements.txt
+python -m pip install uv
+uv sync --locked --extra dev
 ```
+
+The project targets Python 3.11–3.13. `pyproject.toml` defines the supported dependency ranges, and the committed `uv.lock` pins the resolved dependency graph. Use `uv sync --locked` to install exactly that graph and fail if the metadata and lockfile drift.
+
+For a pip-based editable install, use `pip install -r requirements.txt`; this compatibility path follows the dependency ranges and does not enforce the lockfile. Use `uv` when exact locked versions are required.
 
 ## Environment Variables
 
-Create a `.env` file in the project root if you want to use Twitter/X analysis:
+Copy `.env.example` to `.env` for local development. Keep real credentials only in the ignored local file or a secret manager; never commit them.
 
-```env
-TWITTER_BEARER_TOKEN=your_token_here
-MODEL_PATH=models/bert_sentiment
+```bash
+cp .env.example .env
 ```
 
-`MODEL_PATH` is optional because the app already defaults to `models/bert_sentiment`.
+On PowerShell, use `Copy-Item .env.example .env`.
+
+`MODEL_PATH` points to a locally available fine-tuned Transformers model. `APIFY_TOKEN` and `TWITTER_COOKIE` are only needed for the current Apify-based collection path. The model and dataset are not included in this checkout; `/predict` cannot return a real model prediction until a compatible model artifact is supplied.
 
 ## Run the API
 
 From the project root:
 
 ```bash
-uvicorn app.main:app --reload
+uv run uvicorn app.main:app --reload
 ```
 
 The API will start locally at:
@@ -67,6 +73,12 @@ Interactive docs:
 
 - Swagger UI: `http://127.0.0.1:8000/docs`
 - ReDoc: `http://127.0.0.1:8000/redoc`
+
+Run the test suite with:
+
+```bash
+uv run pytest -q
+```
 
 ## API Endpoints
 
@@ -138,26 +150,42 @@ Response example:
 
 ## Training Workflow
 
-The training pipeline is split into separate scripts:
+The training path is deliberately staged. It uses large-scale binary Sentiment140 data to adapt to social-media language, then the pinned English TweetEval sentiment subset to learn negative, neutral, and positive labels.
 
-1. `src/preprocessing.py`
-   Cleans the raw Sentiment140 dataset and saves `data/processed/clean_data.csv`.
-2. `src/split_dataset.py`
-   Splits the cleaned data into `train.csv`, `val.csv`, and `test.csv`.
-3. `src/bert_train.py`
-   Fine-tunes the BERT model and saves artifacts to `models/bert_sentiment`.
+1. Download the Kaggle Sentiment140 archive. Place the original `training.1600000.processed.noemoticon.csv` in `data/raw/`, then validate and prepare it:
 
-## Model Performance
+   ```bash
+   uv run python -m src.prepare_sentiment140
+   ```
 
-The current recorded evaluation in `results/metrics.txt` reports:
+   The 1.6M-row training file is used only for binary negative/positive adaptation. It has no neutral training examples. The script preserves raw text, removes exact duplicate text rows, creates a deterministic binary validation split, and records checksums in `results/sentiment140_manifest.json`.
 
-- Accuracy: `0.8756`
-- Precision: `0.8823`
-- Recall: `0.8701`
-- F1-score: `0.8761`
+2. Fetch and validate the three-class benchmark splits:
+
+   ```bash
+   uv run python -m src.download_tweet_eval
+   ```
+
+   This writes ignored CSVs under `data/processed/` and a text-free provenance/statistics manifest to `results/tweet_eval_manifest.json`. It preserves the official train, validation, and test partitions.
+
+3. Train in stages on a GPU environment such as Google Colab:
+
+   ```bash
+   uv run python -m src.train_staged_sentiment --stage all
+   ```
+
+   Stage A saves a binary-adapted encoder at `models/stage_a_sentiment140`. Stage B replaces its binary classification head, fine-tunes three-way sentiment on TweetEval, and saves the serving candidate at `models/bert_sentiment`. It writes held-out TweetEval metrics to `results/staged_training_metrics.json`.
+
+4. Before any production claim, evaluate against a separate modern human-reviewed holdout. Its schema template is at `data/external/modern_holdout_template.csv`; actual reviewed data must stay outside Git.
+
+The [Colab runbook](notebooks/COLAB_STAGED_TRAINING.md) has the exact GPU workflow and artifact-preservation steps.
+
+## Historical Model Metrics
+
+`results/metrics.txt` and `results/confusion_matrix.png` are historical artifacts. Their reported three-class results do not match the former two-class training code and are not verified release metrics. Use the generated TweetEval manifest and evaluation report for new runs.
 
 ## Notes
 
-- The inference app currently maps BERT labels to `negative` and `positive`.
-- Some legacy files suggest an older TF-IDF direction, but the active app path is centered on the saved BERT model.
-- Twitter/X analysis requires a valid bearer token and network access when the app is run outside this environment.
+- The current prediction path still expects a locally available model and maps only negative/positive; three-class serving integration is a later phase.
+- The candidate evaluation baseline is pinned separately in the Phase 2 audit; it has not yet been downloaded or benchmarked locally.
+- X/Twitter collection requires Apify credentials, network access, and compliance with the relevant platform terms.

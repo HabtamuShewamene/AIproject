@@ -1,0 +1,4 @@
+text,label,reviewer_id,reviewed_at,source
+Example neutral service update,1,reviewer-001,2026-11-20,manual
+Example negative customer complaint,0,reviewer-001,2026-11-20,manual
+Example positive customer feedback,2,reviewer-001,2026-11-20,manual

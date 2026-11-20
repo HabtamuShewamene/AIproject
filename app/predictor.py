@@ -1,3 +1,4 @@
+
 """Sentiment prediction powered primarily by the trained BERT model."""
 
 from __future__ import annotations
@@ -22,7 +23,8 @@ from app.translator import translate_to_english
 
 LABEL_MAP = {
     0: "negative",
-    1: "positive",
+    1: "neutral",
+    2: "positive",
 }
 
 LOCAL_MODEL_FALLBACK = Path(__file__).resolve().parent.parent / "models" / "bert_sentiment"
@@ -59,7 +61,7 @@ def _softmax_scores(logits: torch.Tensor) -> torch.Tensor:
     return torch.softmax(logits, dim=-1)
 
 
-def _predict_with_model(text: str) -> tuple[str, float]:
+def _predict_with_model(text: str) -> tuple[str, float, dict[str, float]]:
     tokenizer, model = _load_model_bundle()
 
     inputs = tokenizer(
@@ -77,11 +79,23 @@ def _predict_with_model(text: str) -> tuple[str, float]:
     label_id = int(torch.argmax(probs).item())
     confidence = float(probs[label_id].item())
 
-    sentiment = LABEL_MAP.get(label_id, "neutral")
-    if sentiment not in {"positive", "negative"}:
-        sentiment = "neutral"
+    # Dynamically resolve label map from model config or fallback to TweetEval standard
+    label_map = LABEL_MAP
+    if hasattr(model, "config") and hasattr(model.config, "id2label") and model.config.id2label:
+        config_map = model.config.id2label
+        label_map = {
+            int(k): str(v).lower() for k, v in config_map.items()
+        }
 
-    return sentiment, round(confidence, 4)
+    sentiment = label_map.get(label_id, "neutral")
+
+    # Format full probabilities dictionary
+    prob_dict = {
+        label_map.get(i, f"class_{i}"): round(float(probs[i].item()), 4)
+        for i in range(len(probs))
+    }
+
+    return sentiment, round(confidence, 4), prob_dict
 
 
 def _apply_rule_helpers(
@@ -122,7 +136,7 @@ def predict_sentiment(text):
 
     translated_text, language = translate_to_english(clean_text)
     model_input = translated_text or clean_text
-    sentiment, confidence = _predict_with_model(model_input)
+    sentiment, confidence, probabilities = _predict_with_model(model_input)
     sentiment, confidence = _apply_rule_helpers(model_input, sentiment, confidence)
 
     return {
@@ -131,4 +145,5 @@ def predict_sentiment(text):
         "language": language,
         "sentiment": sentiment,
         "confidence": confidence,
+        "probabilities": probabilities,
     }

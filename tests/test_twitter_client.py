@@ -1,5 +1,3 @@
-from types import SimpleNamespace
-
 from app import twitter_client
 
 
@@ -10,17 +8,17 @@ def test_extract_tweet_id_handles_query_string():
 
 
 def test_fetch_tweet_returns_metrics_with_safe_defaults(monkeypatch):
-    tweet = SimpleNamespace(
-        text="A test tweet",
-        lang="en",
-        public_metrics={"like_count": 5, "retweet_count": 2},
-    )
-    response = SimpleNamespace(data=tweet)
-
     monkeypatch.setattr(
-        twitter_client.client,
-        "get_tweet",
-        lambda **_kwargs: response,
+        twitter_client,
+        "_run_actor",
+        lambda _run_input: [
+            {
+                "text": "A test tweet",
+                "lang": "en",
+                "likeCount": 5,
+                "retweetCount": 2,
+            }
+        ],
     )
 
     result = twitter_client.fetch_tweet("https://twitter.com/example/status/123")
@@ -37,9 +35,9 @@ def test_fetch_tweet_returns_metrics_with_safe_defaults(monkeypatch):
 
 def test_fetch_tweet_returns_none_when_api_has_no_data(monkeypatch):
     monkeypatch.setattr(
-        twitter_client.client,
-        "get_tweet",
-        lambda **_kwargs: SimpleNamespace(data=None),
+        twitter_client,
+        "_run_actor",
+        lambda _run_input: [],
     )
 
     assert twitter_client.fetch_tweet("https://twitter.com/example/status/123") is None

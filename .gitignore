@@ -1,12 +1,45 @@
 data/raw/*.csv
 data/processed/*.csv
+data/external/*.csv
+!data/external/modern_holdout_template.csv
 models/*.pkl
 models/bert_sentiment/
 sentiment-api/
 .venv/
+.uv-cache/
+.hf-cache/
 __pycache__/
 *.pyc
+*.egg-info/
 *.log
 .pytest_cache/
+.pytest_cache_local/
+.pytest_tmp/
+
+# Local environment files and secrets. Keep only redacted templates in Git.
 .env
+.env.*
+!.env.example
+!.env.template
+
+# Private keys and local credential/config stores.
+*.pem
+*.key
+*.p12
+*.pfx
+.ssh/
+.aws/
+.azure/
+.gcloud/
+secrets/
+credentials/
+
+# Local state, databases, dumps, and backups.
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+*.bak
+*.backup
+
 frontend/
