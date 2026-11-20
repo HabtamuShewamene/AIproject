@@ -45,3 +45,5 @@ include = ["app*"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+pythonpath = ["."]
+addopts = "--basetemp=.pytest_tmp -o cache_dir=.pytest_cache_local"

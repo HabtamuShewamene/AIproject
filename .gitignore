@@ -13,6 +13,8 @@ __pycache__/
 *.egg-info/
 *.log
 .pytest_cache/
+.pytest_cache_local/
+.pytest_tmp/
 
 # Local environment files and secrets. Keep only redacted templates in Git.
 .env

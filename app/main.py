@@ -213,6 +213,7 @@ def enhanced_sentiment_analysis(text: str):
         "language": prediction.get("language", "en"),
         "sentiment": sentiment,
         "confidence": confidence,
+        "probabilities": prediction.get("probabilities", {}),
         "intelligence": intelligence,
     }
 
