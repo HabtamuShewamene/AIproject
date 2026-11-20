@@ -66,7 +66,10 @@ def metric_function(label_ids: list[int]):
 
 
 def training_args(output_dir: Path, run_name: str):
+    import torch
     from transformers import TrainingArguments
+
+    use_cuda = torch.cuda.is_available()
     return TrainingArguments(
         output_dir=str(output_dir),
         eval_strategy="epoch",
@@ -81,7 +84,7 @@ def training_args(output_dir: Path, run_name: str):
         metric_for_best_model="f1_macro",
         greater_is_better=True,
         save_total_limit=2,
-        fp16=True,
+        fp16=use_cuda,
         seed=SEED,
         data_seed=SEED,
         report_to="none",

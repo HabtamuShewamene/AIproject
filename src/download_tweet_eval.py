@@ -87,13 +87,23 @@ def load_pinned_dataset(cache_dir: str | Path | None = None) -> tuple[DatasetDic
     paths: dict[str, Path] = {}
     for split_name in SPLITS:
         filename = f"{DATASET_CONFIG}/{split_name}-00000-of-00001.parquet"
-        path = hf_hub_download(
-            repo_id=DATASET_ID,
-            repo_type="dataset",
-            filename=filename,
-            revision=DATASET_REVISION,
-            cache_dir=str(cache_dir) if cache_dir else None,
-        )
+        try:
+            path = hf_hub_download(
+                repo_id=DATASET_ID,
+                repo_type="dataset",
+                filename=filename,
+                revision=DATASET_REVISION,
+                cache_dir=str(cache_dir) if cache_dir else None,
+            )
+        except Exception:
+            path = hf_hub_download(
+                repo_id=DATASET_ID,
+                repo_type="dataset",
+                filename=filename,
+                revision=DATASET_REVISION,
+                cache_dir=str(cache_dir) if cache_dir else None,
+                local_files_only=True,
+            )
         paths[split_name] = Path(path)
         local_files[split_name] = path
 

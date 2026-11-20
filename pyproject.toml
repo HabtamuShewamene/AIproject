@@ -8,6 +8,7 @@ version = "0.1.0"
 description = "Sentiment analysis API and model training pipeline"
 requires-python = ">=3.11,<3.14"
 dependencies = [
+    "accelerate>=1.1.0,<3",
     "apify-client>=1.8,<4",
     "datasets>=3.1,<5",
     "deep-translator>=1.11,<2",
