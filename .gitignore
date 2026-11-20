@@ -1,5 +1,7 @@
 data/raw/*.csv
 data/processed/*.csv
+data/external/*.csv
+!data/external/modern_holdout_template.csv
 models/*.pkl
 models/bert_sentiment/
 sentiment-api/

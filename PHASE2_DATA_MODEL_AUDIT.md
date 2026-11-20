@@ -61,3 +61,17 @@ The existing BERT fine-tuning direction is retained as a comparison model, but i
 5. Produce a model card and quality thresholds, then update the serving label mapping in the dedicated inference integration phase.
 
 The dataset preparation and training-input path are now concrete. The project still has no locally verified three-way model artifact, so `/predict` must not be represented as a working three-class endpoint yet.
+
+## Staged training decision
+
+The project will use the Kaggle/Stanford Sentiment140 archive as the Stage A volume source and retain TweetEval as Stage B three-class fine-tuning and benchmark data. The Sentiment140 schema defines target `2` as neutral, but the usual `training.1600000.processed.noemoticon.csv` file has 1.6M weakly labeled negative/positive tweets; the separate manually labeled test file is too small to be a neutral-training corpus. The preparation script validates the labels in the actual supplied CSV and will stop if it is not the expected Stage A binary source.
+
+`src/train_staged_sentiment.py` now defines the execution sequence:
+
+1. Prepare Sentiment140 into checksummed binary train/validation data.
+2. Fine-tune the pinned BERT base checkpoint with binary negative/positive labels.
+3. Replace the binary classifier head and fine-tune the encoder on the fixed TweetEval negative/neutral/positive training and validation splits.
+4. Evaluate once on the untouched TweetEval test split.
+5. Require a separate modern, human-reviewed holdout before a production decision.
+
+The Google Colab runbook is at `notebooks/COLAB_STAGED_TRAINING.md`. Training cannot start until the original Sentiment140 training CSV is supplied. The preparation, training-input validation, and staging code can be tested locally without the raw corpus.

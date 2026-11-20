@@ -150,9 +150,17 @@ Response example:
 
 ## Training Workflow
 
-The current training path uses the pinned English TweetEval sentiment subset with negative, neutral, and positive labels:
+The training path is deliberately staged. It uses large-scale binary Sentiment140 data to adapt to social-media language, then the pinned English TweetEval sentiment subset to learn negative, neutral, and positive labels.
 
-1. Fetch and validate the pinned splits:
+1. Download the Kaggle Sentiment140 archive. Place the original `training.1600000.processed.noemoticon.csv` in `data/raw/`, then validate and prepare it:
+
+   ```bash
+   uv run python -m src.prepare_sentiment140
+   ```
+
+   The 1.6M-row training file is used only for binary negative/positive adaptation. It has no neutral training examples. The script preserves raw text, removes exact duplicate text rows, creates a deterministic binary validation split, and records checksums in `results/sentiment140_manifest.json`.
+
+2. Fetch and validate the three-class benchmark splits:
 
    ```bash
    uv run python -m src.download_tweet_eval
@@ -160,15 +168,17 @@ The current training path uses the pinned English TweetEval sentiment subset wit
 
    This writes ignored CSVs under `data/processed/` and a text-free provenance/statistics manifest to `results/tweet_eval_manifest.json`. It preserves the official train, validation, and test partitions.
 
-2. Fine-tune and evaluate the three-class model:
+3. Train in stages on a GPU environment such as Google Colab:
 
    ```bash
-   uv run python -m src.bert_train
+   uv run python -m src.train_staged_sentiment --stage all
    ```
 
-   The best validation checkpoint is saved under `models/bert_sentiment`; final validation and held-out test metrics are written to `results/bert_tweeteval_metrics.json`.
+   Stage A saves a binary-adapted encoder at `models/stage_a_sentiment140`. Stage B replaces its binary classification head, fine-tunes three-way sentiment on TweetEval, and saves the serving candidate at `models/bert_sentiment`. It writes held-out TweetEval metrics to `results/staged_training_metrics.json`.
 
-The older `src/preprocessing.py` and `src/split_dataset.py` scripts apply to the historical binary Sentiment140 path and are not part of this three-class workflow.
+4. Before any production claim, evaluate against a separate modern human-reviewed holdout. Its schema template is at `data/external/modern_holdout_template.csv`; actual reviewed data must stay outside Git.
+
+The [Colab runbook](notebooks/COLAB_STAGED_TRAINING.md) has the exact GPU workflow and artifact-preservation steps.
 
 ## Historical Model Metrics
 
