@@ -1,21 +1,2 @@
-fastapi
-uvicorn
-pydantic
-pandas
-numpy
-transformers
-torch
-scikit-learn
-datasets
-matplotlib
-seaborn
-jupyter
-tweepy
-python-dotenv
-deep-translator
-langdetect
-apify-client
-pytest
-httpx
-# other deps
-watchdog>=2.1.0
+# Compatibility entry point. Dependency declarations live in pyproject.toml.
+-e .[dev]

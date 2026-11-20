@@ -14,12 +14,12 @@ This project is a sentiment analysis system built around a fine-tuned BERT model
 
 ## Tech Stack
 
-- FastAPI
-- Transformers
-- PyTorch
-- scikit-learn
-- pandas
-- Tweepy
+- Python 3.11–3.13
+- FastAPI and Uvicorn
+- Hugging Face Transformers and PyTorch
+- pandas, NumPy, scikit-learn, and Hugging Face Datasets
+- Apify client for the current social collection adapter
+- `uv` and `pyproject.toml` for environment and dependency management
 
 ## Project Structure
 
@@ -32,29 +32,35 @@ This project is a sentiment analysis system built around a fine-tuned BERT model
 
 ## Installation
 
-Create and activate a virtual environment, then install dependencies:
+Install `uv` if it is not already available, then create the project environment and install the development dependencies from the project configuration:
 
 ```bash
-pip install -r requirements.txt
+python -m pip install uv
+uv sync --extra dev
 ```
+
+The project targets Python 3.11–3.13. `pyproject.toml` defines the supported dependency ranges; `uv.lock` is the intended exact resolution for repeatable installs. Until that lockfile is generated and committed, dependency resolution can vary and this setup is not yet fully reproducible.
+
+For a non-editable pip installation, use `pip install -e ".[dev]"` from the project root. The legacy `requirements.txt` remains during this migration and is not the authoritative dependency definition.
 
 ## Environment Variables
 
-Create a `.env` file in the project root if you want to use Twitter/X analysis:
+Copy `.env.example` to `.env` for local development. Keep real credentials only in the ignored local file or a secret manager; never commit them.
 
-```env
-TWITTER_BEARER_TOKEN=your_token_here
-MODEL_PATH=models/bert_sentiment
+```bash
+cp .env.example .env
 ```
 
-`MODEL_PATH` is optional because the app already defaults to `models/bert_sentiment`.
+On PowerShell, use `Copy-Item .env.example .env`.
+
+`MODEL_PATH` points to a locally available fine-tuned Transformers model. `APIFY_TOKEN` and `TWITTER_COOKIE` are only needed for the current Apify-based collection path. The model and dataset are not included in this checkout; `/predict` cannot return a real model prediction until a compatible model artifact is supplied.
 
 ## Run the API
 
 From the project root:
 
 ```bash
-uvicorn app.main:app --reload
+uv run uvicorn app.main:app --reload
 ```
 
 The API will start locally at:
@@ -67,6 +73,12 @@ Interactive docs:
 
 - Swagger UI: `http://127.0.0.1:8000/docs`
 - ReDoc: `http://127.0.0.1:8000/redoc`
+
+Run the test suite with:
+
+```bash
+uv run pytest -q
+```
 
 ## API Endpoints
 
