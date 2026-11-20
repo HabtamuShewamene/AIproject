@@ -36,12 +36,12 @@ Install `uv` if it is not already available, then create the project environment
 
 ```bash
 python -m pip install uv
-uv sync --extra dev
+uv sync --locked --extra dev
 ```
 
-The project targets Python 3.11–3.13. `pyproject.toml` defines the supported dependency ranges; `uv.lock` is the intended exact resolution for repeatable installs. Until that lockfile is generated and committed, dependency resolution can vary and this setup is not yet fully reproducible.
+The project targets Python 3.11–3.13. `pyproject.toml` defines the supported dependency ranges, and the committed `uv.lock` pins the resolved dependency graph. Use `uv sync --locked` to install exactly that graph and fail if the metadata and lockfile drift.
 
-For a non-editable pip installation, use `pip install -e ".[dev]"` from the project root. The legacy `requirements.txt` remains during this migration and is not the authoritative dependency definition.
+For a pip-based editable install, use `pip install -r requirements.txt`; this compatibility path follows the dependency ranges and does not enforce the lockfile. Use `uv` when exact locked versions are required.
 
 ## Environment Variables
 
