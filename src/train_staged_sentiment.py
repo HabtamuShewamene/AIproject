@@ -112,6 +112,28 @@ def run_stage_a() -> Path:
     trainer.train()
     trainer.save_model(str(STAGE_A_DIR))
     tokenizer.save_pretrained(str(STAGE_A_DIR))
+
+    # Evaluate on untouched Stage A test set if available
+    test_path = DATA_DIR / "sentiment140_test.csv"
+    if test_path.is_file():
+        test_frame = read_csv(test_path, {0, 1})
+        test_output = trainer.predict(tokenized_dataset(test_frame, tokenizer))
+        test_predicted = test_output.predictions.argmax(-1)
+        stage_a_report = {
+            "stage_a_test": classification_report(
+                test_output.label_ids,
+                test_predicted,
+                labels=[0, 1],
+                target_names=["negative", "positive"],
+                output_dict=True,
+                zero_division=0,
+            )
+        }
+        RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+        (RESULTS_DIR / "stage_a_test_metrics.json").write_text(
+            json.dumps(stage_a_report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
+
     return STAGE_A_DIR
 
 
