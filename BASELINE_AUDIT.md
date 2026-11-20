@@ -8,7 +8,7 @@
 
 This is a prototype with meaningful backend and model-training code, but this checkout does not yet provide a reproducible, usable end-to-end product. The core serving path expects model artifacts that are absent; training expects source data that is absent; the frontend source is incomplete and excluded from Git; and production deployment, security, and operational controls are not present. The recorded model metrics conflict with the two-class training and inference implementation and cannot be verified from the available artifacts.
 
-**Immediate security finding:** `.env` is tracked by Git (`git ls-files` reports it), even though `.gitignore` lists `.env`. Treat any credentials ever stored in it as exposed: revoke/rotate them and audit repository history and access. The audit intentionally does not reproduce its contents. Adding `.env` to `.gitignore` alone does not remove a tracked file or erase its history.
+**Immediate security finding:** `.env` was tracked by Git at the audit baseline, even though `.gitignore` listed it. A follow-up commit added broader local-secret ignore rules and removed `.env` from the index while preserving the local working copy. Treat any credentials ever stored in it as exposed: revoke/rotate them and audit repository history and access. The audit intentionally does not reproduce its contents. The historical blob remains reachable from the branch's earlier commits; ignore rules and an index deletion do not erase Git history.
 
 ## Status definitions
 
@@ -62,7 +62,7 @@ Training scripts → expected Sentiment140 CSV → processed splits → BERT art
 - Current base branch at audit start: `main`, at `41183a4` (`Merge pull request #6 ...`).
 - Remote named `origin` points to the project GitHub repository.
 - The only pre-existing worktree change at phase start was the untracked `ROADMAP.md` created for the roadmap request; it was retained on the phase branch.
-- `.env` is tracked despite the ignore rule. Credential rotation/history review is a release-blocking security task.
+- At audit baseline `.env` was tracked despite the ignore rule. It is now ignored and removed from the index in a follow-up commit; the local file remains. Its historical blob is still reachable. Credential rotation/history review is a release-blocking security task.
 - `frontend/` is ignored by `.gitignore`; listed frontend sources are therefore not part of the normal Git checkout.
 - No deployment workflow, container definition, infrastructure-as-code, dependency lock, or CI workflow was found in the repository inventory.
 
@@ -95,6 +95,7 @@ These choices change architecture and acceptance criteria. Record the selected a
 - [x] Repository structure, source paths, declared dependencies, API routes, tests, and deployment files inventoried.
 - [x] Material implementation gaps and contradictions recorded with source evidence.
 - [x] Phase branch created without overwriting pre-existing work.
+- [x] Added ignore rules for local environment/credential files and removed `.env` from the index while preserving the local copy.
 - [ ] Exposed or historically committed credentials revoked/rotated and repository history/access reviewed.
 - [ ] Product, language, data, hosting, and service targets decided.
 - [ ] Data/model/frontend asset locations established or approved acquisition plans recorded.

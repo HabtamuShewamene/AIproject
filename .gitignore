@@ -8,5 +8,31 @@ __pycache__/
 *.pyc
 *.log
 .pytest_cache/
+
+# Local environment files and secrets. Keep only redacted templates in Git.
 .env
+.env.*
+!.env.example
+!.env.template
+
+# Private keys and local credential/config stores.
+*.pem
+*.key
+*.p12
+*.pfx
+.ssh/
+.aws/
+.azure/
+.gcloud/
+secrets/
+credentials/
+
+# Local state, databases, dumps, and backups.
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+*.bak
+*.backup
+
 frontend/
