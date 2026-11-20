@@ -33,6 +33,31 @@ def test_prepare_sentiment140_maps_labels_and_writes_manifest(tmp_path):
     saved = json.loads(manifest_path.read_text(encoding="utf-8"))
     assert saved["cross_split_duplicate_texts"] == 0
     assert (output_dir / "sentiment140_train.csv").is_file()
+    assert (output_dir / "sentiment140_validation.csv").is_file()
+    assert (output_dir / "sentiment140_test.csv").is_file()
+
+
+def test_prepare_sentiment140_cleans_html_and_mentions(tmp_path):
+    raw_path = tmp_path / "training.1600000.processed.noemoticon.csv"
+    _write_raw_csv(
+        raw_path,
+        [
+            [0, "10", "date", "NO_QUERY", "user1", "Watching &quot;Movie&quot; @director http://link.com #bad"],
+            [4, "11", "date", "NO_QUERY", "user2", "Loved &amp; adored this show @actress #great"],
+            [0, "12", "date", "NO_QUERY", "user3", "Sooooo terrible and disappointing!"],
+        ],
+    )
+    output_dir = tmp_path / "processed"
+    manifest_path = tmp_path / "manifest.json"
+
+    prepare_sentiment140(raw_path, output_dir, manifest_path)
+    train_df = pd.read_csv(output_dir / "sentiment140_train.csv")
+
+    assert (output_dir / "sentiment140_test.csv").is_file()
+    # Ensure HTML entities were unescaped and URLs removed
+    all_texts = " ".join(train_df["text"].tolist())
+    assert "&quot;" not in all_texts
+    assert "http://" not in all_texts
 
 
 def test_load_raw_rejects_neutral_label_in_stage_a_source(tmp_path):

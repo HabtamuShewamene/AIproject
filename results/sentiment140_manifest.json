@@ -1,0 +1,84 @@
+{
+  "cleaned_valid_rows": 1596810,
+  "cross_split_duplicate_texts": 0,
+  "cross_split_duplicates_by_pair": {
+    "train:test": 0,
+    "train:validation": 0,
+    "validation:test": 0
+  },
+  "dataset": "Sentiment140 Kaggle/Stanford training file",
+  "duplicate_text_rows_removed": 56512,
+  "limitations": [
+    "Labels are weak supervision derived from emoticons.",
+    "Training data is binary and cannot train neutral sentiment.",
+    "Tweets are historical and should not be the sole source for production quality claims."
+  ],
+  "preprocessing_pipeline": [
+    "HTML entity unescaping (&quot; -> \", &amp; -> &)",
+    "Unicode NFKC normalization",
+    "URL stripping (https?://...)",
+    "User mention standardization (@username -> @user)",
+    "Hashtag content extraction (#hashtag -> hashtag)",
+    "Character elongation squashing (e.g. sooooo -> soo)",
+    "Punctuation normalization (!, ?)",
+    "Contraction and negation preservation",
+    "Noise and ghost text filtering (min_chars >= 3)",
+    "Global deduplication on cleaned text"
+  ],
+  "processed_files": {
+    "test": {
+      "filename": "sentiment140_test.csv",
+      "rows": 154114,
+      "sha256": "fb8789e11b75418fe4e260550df44dfa5facdf454f2849051a3c2fb5280dfefb"
+    },
+    "train": {
+      "filename": "sentiment140_train.csv",
+      "rows": 1231968,
+      "sha256": "f38d6c02de8feb3254f121b3e55cb1f127888537433162f9329b0de1930e42dd"
+    },
+    "validation": {
+      "filename": "sentiment140_validation.csv",
+      "rows": 154216,
+      "sha256": "76855c16435230b6ac61109c7518cfac0cb43e52f933b68706dc92b634d8ff98"
+    }
+  },
+  "raw_file": "training.1600000.processed.noemoticon.csv",
+  "raw_label_map": {
+    "0": "negative",
+    "4": "positive"
+  },
+  "raw_sha256": "08cba6317a49528fcd074f9043aafcd5ad6c6be45ede159c4e36cec33af24afe",
+  "split_method": "sha256(seed=42, tweet_id) buckets: <80 train (80%), 80-89 val (10%), >=90 test (10%)",
+  "split_ratios": {
+    "test": 0.1,
+    "train": 0.8,
+    "validation": 0.1
+  },
+  "splits": {
+    "test": {
+      "class_counts": {
+        "negative": 78009,
+        "positive": 76105
+      },
+      "rows": 154114
+    },
+    "train": {
+      "class_counts": {
+        "negative": 619995,
+        "positive": 611973
+      },
+      "rows": 1231968
+    },
+    "validation": {
+      "class_counts": {
+        "negative": 77786,
+        "positive": 76430
+      },
+      "rows": 154216
+    }
+  },
+  "training_label_map": {
+    "0": "negative",
+    "1": "positive"
+  }
+}
