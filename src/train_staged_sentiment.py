@@ -65,7 +65,7 @@ def metric_function(label_ids: list[int]):
     return compute
 
 
-def training_args(output_dir: Path, run_name: str):
+def training_args(output_dir: Path, run_name: str, epochs: int = 2, logging_steps: int = 100):
     import torch
     from transformers import TrainingArguments
 
@@ -75,16 +75,17 @@ def training_args(output_dir: Path, run_name: str):
         eval_strategy="epoch",
         save_strategy="epoch",
         learning_rate=2e-5,
-        per_device_train_batch_size=16,
-        per_device_eval_batch_size=32,
-        gradient_accumulation_steps=2,
-        num_train_epochs=2,
+        per_device_train_batch_size=32 if use_cuda else 16,
+        per_device_eval_batch_size=64 if use_cuda else 32,
+        gradient_accumulation_steps=1 if use_cuda else 2,
+        num_train_epochs=epochs,
         weight_decay=0.01,
         load_best_model_at_end=True,
         metric_for_best_model="f1_macro",
         greater_is_better=True,
         save_total_limit=2,
         fp16=use_cuda,
+        logging_steps=logging_steps,
         seed=SEED,
         data_seed=SEED,
         report_to="none",
@@ -92,10 +93,13 @@ def training_args(output_dir: Path, run_name: str):
     )
 
 
-def run_stage_a() -> Path:
+def run_stage_a(max_samples: int | None = None, epochs: int = 2) -> Path:
     from transformers import AutoModelForSequenceClassification, AutoTokenizer, Trainer
+
     tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL, revision=BASE_MODEL_REVISION)
     train = read_csv(DATA_DIR / "sentiment140_train.csv", {0, 1})
+    if max_samples and max_samples < len(train):
+        train = train.sample(n=max_samples, random_state=SEED).reset_index(drop=True)
     validation = read_csv(DATA_DIR / "sentiment140_validation.csv", {0, 1})
     model = AutoModelForSequenceClassification.from_pretrained(
         BASE_MODEL,
@@ -106,7 +110,7 @@ def run_stage_a() -> Path:
     )
     trainer = Trainer(
         model=model,
-        args=training_args(STAGE_A_DIR, "sentiment140-binary-adaptation"),
+        args=training_args(STAGE_A_DIR, "sentiment140-binary-adaptation", epochs=epochs),
         train_dataset=tokenized_dataset(train, tokenizer),
         eval_dataset=tokenized_dataset(validation, tokenizer),
         processing_class=tokenizer,
@@ -140,8 +144,9 @@ def run_stage_a() -> Path:
     return STAGE_A_DIR
 
 
-def run_stage_b(stage_a_dir: Path = STAGE_A_DIR) -> dict:
+def run_stage_b(stage_a_dir: Path = STAGE_A_DIR, epochs: int = 2) -> dict:
     from transformers import AutoModelForSequenceClassification, AutoTokenizer, Trainer
+
     if not stage_a_dir.is_dir():
         raise FileNotFoundError(f"Missing Stage A model at {stage_a_dir}. Run Stage A first.")
     tokenizer = AutoTokenizer.from_pretrained(stage_a_dir)
@@ -157,7 +162,7 @@ def run_stage_b(stage_a_dir: Path = STAGE_A_DIR) -> dict:
     )
     trainer = Trainer(
         model=model,
-        args=training_args(STAGE_B_DIR, "tweet-eval-three-class-finetune"),
+        args=training_args(STAGE_B_DIR, "tweet-eval-three-class-finetune", epochs=epochs),
         train_dataset=tokenized_dataset(train, tokenizer),
         eval_dataset=tokenized_dataset(validation, tokenizer),
         processing_class=tokenizer,
@@ -172,9 +177,12 @@ def run_stage_b(stage_a_dir: Path = STAGE_A_DIR) -> dict:
         "stage_a_model": str(stage_a_dir),
         "stage_b_model": str(STAGE_B_DIR),
         "tweet_eval_test": classification_report(
-            output.label_ids, predicted, labels=sorted(LABEL_NAMES),
+            output.label_ids,
+            predicted,
+            labels=sorted(LABEL_NAMES),
             target_names=[LABEL_NAMES[index] for index in sorted(LABEL_NAMES)],
-            output_dict=True, zero_division=0,
+            output_dict=True,
+            zero_division=0,
         ),
     }
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -185,13 +193,20 @@ def run_stage_b(stage_a_dir: Path = STAGE_A_DIR) -> dict:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Staged sentiment model training pipeline.")
     parser.add_argument("--stage", choices=("a", "b", "all"), default="all")
+    parser.add_argument("--epochs", type=int, default=2, help="Training epochs per stage (default: 2)")
+    parser.add_argument(
+        "--max-samples",
+        type=int,
+        default=None,
+        help="Optional max samples for Stage A (useful for fast validation runs)",
+    )
     args = parser.parse_args()
     if args.stage in {"a", "all"}:
-        run_stage_a()
+        run_stage_a(max_samples=args.max_samples, epochs=args.epochs)
     if args.stage in {"b", "all"}:
-        print(json.dumps(run_stage_b(), indent=2, sort_keys=True))
+        print(json.dumps(run_stage_b(epochs=args.epochs), indent=2, sort_keys=True))
 
 
 if __name__ == "__main__":
