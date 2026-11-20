@@ -150,26 +150,32 @@ Response example:
 
 ## Training Workflow
 
-The training pipeline is split into separate scripts:
+The current training path uses the pinned English TweetEval sentiment subset with negative, neutral, and positive labels:
 
-1. `src/preprocessing.py`
-   Cleans the raw Sentiment140 dataset and saves `data/processed/clean_data.csv`.
-2. `src/split_dataset.py`
-   Splits the cleaned data into `train.csv`, `val.csv`, and `test.csv`.
-3. `src/bert_train.py`
-   Fine-tunes the BERT model and saves artifacts to `models/bert_sentiment`.
+1. Fetch and validate the pinned splits:
 
-## Model Performance
+   ```bash
+   uv run python -m src.download_tweet_eval
+   ```
 
-The current recorded evaluation in `results/metrics.txt` reports:
+   This writes ignored CSVs under `data/processed/` and a text-free provenance/statistics manifest to `results/tweet_eval_manifest.json`. It preserves the official train, validation, and test partitions.
 
-- Accuracy: `0.8756`
-- Precision: `0.8823`
-- Recall: `0.8701`
-- F1-score: `0.8761`
+2. Fine-tune and evaluate the three-class model:
+
+   ```bash
+   uv run python -m src.bert_train
+   ```
+
+   The best validation checkpoint is saved under `models/bert_sentiment`; final validation and held-out test metrics are written to `results/bert_tweeteval_metrics.json`.
+
+The older `src/preprocessing.py` and `src/split_dataset.py` scripts apply to the historical binary Sentiment140 path and are not part of this three-class workflow.
+
+## Historical Model Metrics
+
+`results/metrics.txt` and `results/confusion_matrix.png` are historical artifacts. Their reported three-class results do not match the former two-class training code and are not verified release metrics. Use the generated TweetEval manifest and evaluation report for new runs.
 
 ## Notes
 
-- The inference app currently maps BERT labels to `negative` and `positive`.
-- Some legacy files suggest an older TF-IDF direction, but the active app path is centered on the saved BERT model.
-- Twitter/X analysis requires a valid bearer token and network access when the app is run outside this environment.
+- The current prediction path still expects a locally available model and maps only negative/positive; three-class serving integration is a later phase.
+- The candidate evaluation baseline is pinned separately in the Phase 2 audit; it has not yet been downloaded or benchmarked locally.
+- X/Twitter collection requires Apify credentials, network access, and compliance with the relevant platform terms.

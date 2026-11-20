@@ -1,0 +1,79 @@
+{
+  "config": "sentiment",
+  "cross_split_duplicate_texts": {
+    "train:test": 0,
+    "train:validation": 0,
+    "validation:test": 0
+  },
+  "dataset_id": "cardiffnlp/tweet_eval",
+  "label_map": {
+    "0": "negative",
+    "1": "neutral",
+    "2": "positive"
+  },
+  "license_review": "Review the original sentiment subset license and applicable X/Twitter terms before redistribution or commercial deployment.",
+  "processed_files": {
+    "test.csv": {
+      "rows": 12284,
+      "sha256": "12ced5dc67c69b723777c7953b4ca5076fdd28b5adeeb4ab18d85b201c2024a9"
+    },
+    "train.csv": {
+      "rows": 45615,
+      "sha256": "7cb3a80768be165e7aa0286b2cc7d5fc3cf5354b5659334c07017148495f383f"
+    },
+    "val.csv": {
+      "rows": 2000,
+      "sha256": "66e4811a81f8d3ea033c42eb29a84124cd7e796edafcc6a4b41c979abe511d5a"
+    }
+  },
+  "revision": "b3a375baf0f409c77e6bc7aa35102b7b3534f8be",
+  "source_files": {
+    "test": {
+      "filename": "test-00000-of-00001.parquet",
+      "sha256": "f73aea52d43879223019e733b944780f7e9203ee32459ea006f554011379fcdf"
+    },
+    "train": {
+      "filename": "train-00000-of-00001.parquet",
+      "sha256": "884ed7990ba4058aa78372f5f9590db308c393820545d9c4f2363f5a2ea12fbf"
+    },
+    "validation": {
+      "filename": "validation-00000-of-00001.parquet",
+      "sha256": "ba8e7513047d4991bcdcc0a22aaa70777e47b609f1b739da5117baf7893f3e56"
+    }
+  },
+  "splits": {
+    "test": {
+      "class_counts": {
+        "negative": 3972,
+        "neutral": 5937,
+        "positive": 2375
+      },
+      "duplicate_rows_within_split": 4,
+      "empty_texts": 0,
+      "rows": 12284,
+      "unique_texts": 12280
+    },
+    "train": {
+      "class_counts": {
+        "negative": 7093,
+        "neutral": 20673,
+        "positive": 17849
+      },
+      "duplicate_rows_within_split": 30,
+      "empty_texts": 0,
+      "rows": 45615,
+      "unique_texts": 45585
+    },
+    "validation": {
+      "class_counts": {
+        "negative": 312,
+        "neutral": 869,
+        "positive": 819
+      },
+      "duplicate_rows_within_split": 0,
+      "empty_texts": 0,
+      "rows": 2000,
+      "unique_texts": 2000
+    }
+  }
+}

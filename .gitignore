@@ -5,6 +5,7 @@ models/bert_sentiment/
 sentiment-api/
 .venv/
 .uv-cache/
+.hf-cache/
 __pycache__/
 *.pyc
 *.egg-info/
