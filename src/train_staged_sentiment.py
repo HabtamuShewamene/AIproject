@@ -65,15 +65,17 @@ def metric_function(label_ids: list[int]):
     return compute
 
 
-def training_args(output_dir: Path, run_name: str, epochs: int = 2, logging_steps: int = 100):
+def training_args(output_dir: Path, run_name: str, epochs: int = 2, logging_steps: int = 100, save_steps: int = 500):
     import torch
     from transformers import TrainingArguments
 
     use_cuda = torch.cuda.is_available()
     return TrainingArguments(
         output_dir=str(output_dir),
-        eval_strategy="epoch",
-        save_strategy="epoch",
+        eval_strategy="steps" if save_steps else "epoch",
+        eval_steps=save_steps if save_steps else None,
+        save_strategy="steps" if save_steps else "epoch",
+        save_steps=save_steps if save_steps else None,
         learning_rate=2e-5,
         per_device_train_batch_size=32 if use_cuda else 16,
         per_device_eval_batch_size=64 if use_cuda else 32,
@@ -93,7 +95,7 @@ def training_args(output_dir: Path, run_name: str, epochs: int = 2, logging_step
     )
 
 
-def run_stage_a(max_samples: int | None = None, epochs: int = 2) -> Path:
+def run_stage_a(max_samples: int | None = None, epochs: int = 2, save_steps: int = 500) -> Path:
     from transformers import AutoModelForSequenceClassification, AutoTokenizer, Trainer
 
     tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL, revision=BASE_MODEL_REVISION)
@@ -110,13 +112,18 @@ def run_stage_a(max_samples: int | None = None, epochs: int = 2) -> Path:
     )
     trainer = Trainer(
         model=model,
-        args=training_args(STAGE_A_DIR, "sentiment140-binary-adaptation", epochs=epochs),
+        args=training_args(STAGE_A_DIR, "sentiment140-binary-adaptation", epochs=epochs, save_steps=save_steps),
         train_dataset=tokenized_dataset(train, tokenizer),
         eval_dataset=tokenized_dataset(validation, tokenizer),
         processing_class=tokenizer,
         compute_metrics=metric_function([0, 1]),
     )
-    trainer.train()
+    # Check for existing checkpoint to resume from
+    checkpoints = list(STAGE_A_DIR.glob("checkpoint-*")) if STAGE_A_DIR.is_dir() else []
+    resume = True if checkpoints else False
+    if resume:
+        print(f"Resuming Stage A from checkpoint in {STAGE_A_DIR}...")
+    trainer.train(resume_from_checkpoint=resume)
     trainer.save_model(str(STAGE_A_DIR))
     tokenizer.save_pretrained(str(STAGE_A_DIR))
 
@@ -144,7 +151,7 @@ def run_stage_a(max_samples: int | None = None, epochs: int = 2) -> Path:
     return STAGE_A_DIR
 
 
-def run_stage_b(stage_a_dir: Path = STAGE_A_DIR, epochs: int = 2) -> dict:
+def run_stage_b(stage_a_dir: Path = STAGE_A_DIR, epochs: int = 2, save_steps: int = 200) -> dict:
     from transformers import AutoModelForSequenceClassification, AutoTokenizer, Trainer
 
     if not stage_a_dir.is_dir():
@@ -162,13 +169,17 @@ def run_stage_b(stage_a_dir: Path = STAGE_A_DIR, epochs: int = 2) -> dict:
     )
     trainer = Trainer(
         model=model,
-        args=training_args(STAGE_B_DIR, "tweet-eval-three-class-finetune", epochs=epochs),
+        args=training_args(STAGE_B_DIR, "tweet-eval-three-class-finetune", epochs=epochs, save_steps=save_steps),
         train_dataset=tokenized_dataset(train, tokenizer),
         eval_dataset=tokenized_dataset(validation, tokenizer),
         processing_class=tokenizer,
         compute_metrics=metric_function(sorted(LABEL_NAMES)),
     )
-    trainer.train()
+    checkpoints = list(STAGE_B_DIR.glob("checkpoint-*")) if STAGE_B_DIR.is_dir() else []
+    resume = True if checkpoints else False
+    if resume:
+        print(f"Resuming Stage B from checkpoint in {STAGE_B_DIR}...")
+    trainer.train(resume_from_checkpoint=resume)
     trainer.save_model(str(STAGE_B_DIR))
     tokenizer.save_pretrained(str(STAGE_B_DIR))
     output = trainer.predict(tokenized_dataset(test, tokenizer))
@@ -202,11 +213,17 @@ def main() -> None:
         default=None,
         help="Optional max samples for Stage A (useful for fast validation runs)",
     )
+    parser.add_argument(
+        "--save-steps",
+        type=int,
+        default=500,
+        help="Save checkpoint every N steps for auto-resume (default: 500)",
+    )
     args = parser.parse_args()
     if args.stage in {"a", "all"}:
-        run_stage_a(max_samples=args.max_samples, epochs=args.epochs)
+        run_stage_a(max_samples=args.max_samples, epochs=args.epochs, save_steps=args.save_steps)
     if args.stage in {"b", "all"}:
-        print(json.dumps(run_stage_b(epochs=args.epochs), indent=2, sort_keys=True))
+        print(json.dumps(run_stage_b(epochs=args.epochs, save_steps=args.save_steps), indent=2, sort_keys=True))
 
 
 if __name__ == "__main__":
