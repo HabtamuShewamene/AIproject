@@ -1,0 +1,37 @@
+{
+  "stage_a_model": "/kaggle/working/AIproject/models/stage_a_sentiment140",
+  "stage_b_model": "/kaggle/working/AIproject/models/bert_sentiment",
+  "tweet_eval_test": {
+    "accuracy": 0.7039238033213937,
+    "macro avg": {
+      "f1-score": 0.7027656661726577,
+      "precision": 0.6953142620066673,
+      "recall": 0.7126158181693635,
+      "support": 12284.0
+    },
+    "negative": {
+      "f1-score": 0.7206103051525763,
+      "precision": 0.7159542743538767,
+      "recall": 0.7253272910372608,
+      "support": 3972.0
+    },
+    "neutral": {
+      "f1-score": 0.6990781005392243,
+      "precision": 0.7227117424923575,
+      "recall": 0.6769412161024086,
+      "support": 5937.0
+    },
+    "positive": {
+      "f1-score": 0.6886085928261726,
+      "precision": 0.6472767691737681,
+      "recall": 0.735578947368421,
+      "support": 2375.0
+    },
+    "weighted avg": {
+      "f1-score": 0.7040162994895447,
+      "precision": 0.7059420644495623,
+      "recall": 0.7039238033213937,
+      "support": 12284.0
+    }
+  }
+}
