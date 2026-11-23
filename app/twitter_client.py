@@ -54,9 +54,26 @@ _raw_client = ApifyClient(APIFY_TOKEN) if ApifyClient and APIFY_TOKEN else _Noop
 client = _ClientAdapter(_raw_client)
 
 
+TWEET_URL_PATTERN = re.compile(
+    r"^https?://(www\.)?(twitter|x)\.com/[A-Za-z0-9_]+/status/(\d+)",
+    re.IGNORECASE,
+)
+
+
+def is_valid_tweet_url(url: str) -> bool:
+    """Validate whether input is a well-formed Twitter/X tweet URL."""
+    if not url or not isinstance(url, str):
+        return False
+    return bool(TWEET_URL_PATTERN.match(url.strip()))
+
+
 def extract_tweet_id(url: str) -> str:
-    match = re.search(r"/status/(\d+)", url or "")
+    """Extract numeric tweet status ID from URL."""
+    if not url:
+        return ""
+    match = re.search(r"/status/(\d+)", url)
     return match.group(1) if match else ""
+
 
 
 def _safe_int(value) -> int:
@@ -142,6 +159,40 @@ def fetch_tweet(url: str):
 
     first_item = items[0] if isinstance(items, list) else items
     return _normalize_tweet_item(first_item)
+
+
+def fetch_tweet_safe(url: str) -> dict:
+    """
+    Hardened tweet fetcher returning explicit status codes and error details.
+    """
+    if not is_valid_tweet_url(url):
+        return {
+            "status": "invalid_url",
+            "error": "URL must be a valid Twitter/X tweet link (e.g. https://x.com/user/status/123).",
+            "data": None,
+        }
+
+    if not APIFY_TOKEN:
+        return {
+            "status": "missing_credentials",
+            "error": "APIFY_TOKEN environment variable is not configured.",
+            "data": None,
+        }
+
+    item = fetch_tweet(url)
+    if not item:
+        return {
+            "status": "not_found",
+            "error": "Tweet could not be retrieved or was deleted/private.",
+            "data": None,
+        }
+
+    return {
+        "status": "ok",
+        "error": None,
+        "data": item,
+    }
+
 
 
 def fetch_tweets(query: str):
