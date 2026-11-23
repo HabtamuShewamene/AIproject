@@ -123,81 +123,19 @@ def enhanced_sentiment_analysis(text: str):
 
     prediction = predict_sentiment(text)
 
-    sentiment = prediction.get(
-        "sentiment",
-        "neutral"
-    )
+    # Core sentiment and confidence are anchored strictly to the neural model
+    # (no arbitrary heuristic overrides that mask true model predictions).
+    sentiment = prediction.get("sentiment", "neutral")
+    confidence = float(prediction.get("confidence", 0.0))
 
-    confidence = float(
-        prediction.get(
-            "confidence",
-            0
-        )
-    )
-
-    lower_text = text.lower()
-
-    if contains_sarcasm(lower_text) and confidence < 0.90:
-
-        if sentiment == "positive":
-
-            sentiment = "negative"
-
-            confidence = min(
-                confidence + 0.15,
-                1.0
-            )
-
-    if has_negation(lower_text):
-
-        positive_hits = count_keywords(
-            lower_text,
-            POSITIVE_WORDS
-        )
-
-        negative_hits = count_keywords(
-            lower_text,
-            NEGATIVE_WORDS
-        )
-
-        if positive_hits > negative_hits:
-
-            sentiment = "negative"
-
-            confidence = min(
-                confidence + 0.10,
-                1.0
-            )
-
-    negative_score = count_keywords(
-        lower_text,
-        NEGATIVE_WORDS
-    )
-
-    if negative_score >= 2:
-
-        sentiment = "negative"
-
-        confidence = min(
-            confidence + 0.12,
-            1.0
-        )
-
-    positive_score = count_keywords(
-        lower_text,
-        POSITIVE_WORDS
-    )
-
-    if positive_score >= 2 and sentiment != "negative":
-
-        sentiment = "positive"
-
-        confidence = min(
-            confidence + 0.10,
-            1.0
-        )
-
-    confidence = round(confidence, 4)
+    # Detect explanatory signals for intelligence context without mutating model output
+    lower_text = (text or "").lower()
+    signals = {
+        "sarcasm_detected": bool(contains_sarcasm(lower_text)),
+        "negation_detected": bool(has_negation(lower_text)),
+        "positive_cues": count_keywords(lower_text, POSITIVE_WORDS),
+        "negative_cues": count_keywords(lower_text, NEGATIVE_WORDS),
+    }
 
     intelligence = build_item_intelligence(
         text,
@@ -205,15 +143,21 @@ def enhanced_sentiment_analysis(text: str):
         confidence,
         metrics=None,
     )
+    if isinstance(intelligence, dict) and "explanation" in intelligence:
+        intelligence["explanation"]["signals"] = signals
 
     return {
         "text": text,
         "original_text": prediction.get("original_text", text),
         "translated_text": prediction.get("translated_text", text),
         "language": prediction.get("language", "en"),
+        "language_status": prediction.get("language_status", "unknown"),
+        "model_version": prediction.get("model_version", "unknown"),
         "sentiment": sentiment,
         "confidence": confidence,
+        "low_confidence": prediction.get("low_confidence", False),
         "probabilities": prediction.get("probabilities", {}),
+        "processing_status": prediction.get("processing_status", "ok"),
         "intelligence": intelligence,
     }
 
