@@ -142,4 +142,52 @@ def test_high_confidence_clears_abstention(monkeypatch):
     assert result["confidence"] == 0.85
 
 
+# ---------------------------------------------------------------------------
+# Language & Translation Status Tests
+# ---------------------------------------------------------------------------
+
+def test_english_language_status():
+    result = predict_sentiment("The customer service representative resolved our dispute quickly.")
+
+    assert result["language"] == "en"
+    assert result["language_status"] == "english"
+    assert result["processing_status"] == "ok"
+
+
+def test_translated_language_status(monkeypatch):
+    import app.predictor as predictor
+
+    # Mock translate_to_english to simulate successful translation from Spanish
+    monkeypatch.setattr(
+        predictor,
+        "translate_to_english",
+        lambda _text: ("The food was delicious and fresh.", "es"),
+    )
+
+    result = predictor.predict_sentiment("La comida estaba deliciosa y fresca.")
+
+    assert result["language"] == "es"
+    assert result["language_status"] == "translated"
+    assert result["translated_text"] == "The food was delicious and fresh."
+    assert result["processing_status"] == "ok"
+
+
+def test_translation_failure_is_explicitly_flagged(monkeypatch):
+    import app.predictor as predictor
+
+    # Mock translate_to_english to simulate an API/network outage
+    monkeypatch.setattr(
+        predictor,
+        "translate_to_english",
+        lambda text: (text, "translation_failed"),
+    )
+
+    result = predictor.predict_sentiment("C'était une catastrophe totale.")
+
+    assert result["language"] == "translation_failed"
+    assert result["language_status"] == "translation_failed"
+    assert result["processing_status"] == "translation_failed"
+
+
+
 
