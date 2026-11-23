@@ -121,6 +121,47 @@ def test_v1_social_tweet_success(monkeypatch):
     assert data["tweet_text"] == mock_tweet["text"]
     assert data["metrics"]["likes"] == 42
     assert data["sentiment"] == "positive"
-    assert "probabilities" in data
+    assert data["probabilities"] is not None
     assert "X-Request-ID" in response.headers
+
+
+# ---------------------------------------------------------------------------
+# Global Error Handling & Request Tracing Tests
+# ---------------------------------------------------------------------------
+
+def test_custom_request_id_header_is_propagated():
+    custom_id = "req-custom-trace-uuid-12345"
+    response = client.post(
+        "/api/v1/predict",
+        json={"text": "Everything is running smoothly."},
+        headers={"X-Request-ID": custom_id},
+    )
+
+    assert response.status_code == 200
+    assert response.headers["X-Request-ID"] == custom_id
+
+
+def test_global_404_error_handler_payload():
+    response = client.get("/api/v1/nonexistent-route-for-testing")
+
+    assert response.status_code == 404
+    data = response.json()
+    assert data["error"] == "HTTPException"
+    assert data["status_code"] == 404
+    assert "detail" in data
+    assert data["request_id"] == response.headers.get("X-Request-ID")
+
+
+def test_global_422_validation_error_handler_payload():
+    response = client.post(
+        "/api/v1/predict",
+        json={},
+    )
+
+    assert response.status_code == 422
+    data = response.json()
+    assert data["error"] == "ValidationError"
+    assert data["status_code"] == 422
+    assert isinstance(data["detail"], list)
+    assert data["request_id"] == response.headers.get("X-Request-ID")
 
