@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import sys
+
 
 from app.intelligence_service import build_item_intelligence, build_topic_intelligence
 from app.predictor import predict_sentiment
@@ -46,7 +47,13 @@ app.add_middleware(
 # =========================================
 
 class TextRequest(BaseModel):
-    text: str
+    text: str = Field(
+        ...,
+        min_length=1,
+        max_length=5000,
+        description="Text content to analyze for sentiment polarity and intelligence signals.",
+    )
+
 
 
 class TopicRequest(BaseModel):
