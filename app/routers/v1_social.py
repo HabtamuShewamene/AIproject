@@ -15,6 +15,7 @@ from app.main import (
     TweetRequest,
 )
 from app.intelligence_service import build_item_intelligence, build_topic_intelligence
+from app.schemas import TopicAnalysisRequest
 import app.twitter_client as twitter_client
 
 router = APIRouter(prefix="/api/v1/social", tags=["Social Media v1"])
@@ -57,4 +58,90 @@ def analyze_tweet_v1(data: TweetRequest):
         "confidence": result.get("confidence", 0.0),
         "probabilities": result.get("probabilities", {}),
         "intelligence": result.get("intelligence", {}),
+    }
+
+
+@router.post(
+    "/topic",
+    summary="Analyze sentiment distribution for a topic or hashtag",
+    description="Searches social posts for a topic or keyword query and aggregates polarity distribution and intelligence.",
+)
+def analyze_topic_v1(data: TopicAnalysisRequest):
+    query = data.query.strip()
+    if not query:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Topic query must not be blank.",
+        )
+
+    fetcher = getattr(twitter_client, "fetch_tweets", lambda _query: [])
+    tweets = fetcher(query)
+
+    if not tweets:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No tweets found matching query '{query}'.",
+        )
+
+    results = []
+    limit = data.limit or 20
+    for tweet in tweets[:limit]:
+        text = (tweet.get("text", "") or "").strip()
+        if not text:
+            continue
+
+        sentiment_result = _analyze_tweet_sentiment(text)
+        if not sentiment_result:
+            continue
+
+        metrics = {
+            "likes": _get_number(tweet, "likeCount"),
+            "retweets": _get_number(tweet, "retweetCount"),
+            "replies": _get_number(tweet, "replyCount"),
+            "quotes": _get_number(tweet, "quoteCount"),
+        }
+
+        item_intel = build_item_intelligence(
+            text,
+            sentiment_result["sentiment"],
+            sentiment_result["confidence"],
+            metrics=metrics,
+        )
+
+        results.append({
+            "text": text,
+            "url": tweet.get("url", ""),
+            "author": _get_author_username(tweet),
+            "likes": metrics["likes"],
+            "retweets": metrics["retweets"],
+            "replies": metrics["replies"],
+            "quotes": metrics["quotes"],
+            "views": _get_number(tweet, "viewCount"),
+            "bookmarks": _get_number(tweet, "bookmarkCount"),
+            "created_at": tweet.get("createdAt", ""),
+            "media_type": tweet.get("mediaType", None),
+            "sentiment": sentiment_result["sentiment"],
+            "confidence": sentiment_result["confidence"],
+            "intelligence": item_intel,
+        })
+
+    if not results:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No valid tweets could be analyzed for the specified topic.",
+        )
+
+    summary = aggregate_results(results)
+    intelligence = build_topic_intelligence(
+        query,
+        results,
+        summary,
+    )
+
+    return {
+        "query": query,
+        "summary": summary,
+        "total_tweets": len(results),
+        "results": results[:limit],
+        "intelligence": intelligence,
     }

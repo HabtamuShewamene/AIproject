@@ -54,6 +54,26 @@ class BatchPredictionResponse(BaseModel):
 
 
 # =========================================
+# SOCIAL INTELLIGENCE SCHEMAS
+# =========================================
+
+class TopicAnalysisRequest(BaseModel):
+    query: str = Field(
+        ...,
+        min_length=2,
+        max_length=100,
+        description="Search topic query or hashtag (e.g. 'artificial intelligence' or '#MachineLearning')",
+        examples=["artificial intelligence"],
+    )
+    limit: Optional[int] = Field(
+        default=20,
+        ge=1,
+        le=100,
+        description="Maximum number of tweets to retrieve and evaluate",
+    )
+
+
+# =========================================
 # ERROR RESPONSE SCHEMA
 # =========================================
 

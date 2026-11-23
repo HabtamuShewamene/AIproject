@@ -165,3 +165,77 @@ def test_global_422_validation_error_handler_payload():
     assert isinstance(data["detail"], list)
     assert data["request_id"] == response.headers.get("X-Request-ID")
 
+
+# ---------------------------------------------------------------------------
+# /api/v1/social/topic Integration Tests
+# ---------------------------------------------------------------------------
+
+def test_v1_social_topic_short_query_returns_422():
+    response = client.post(
+        "/api/v1/social/topic",
+        json={"query": "a"},
+    )
+
+    assert response.status_code == 422
+
+
+def test_v1_social_topic_not_found_returns_404(monkeypatch):
+    import app.twitter_client as twitter_client
+
+    monkeypatch.setattr(twitter_client, "fetch_tweets", lambda _q: [])
+
+    response = client.post(
+        "/api/v1/social/topic",
+        json={"query": "nonexistenttopic12345"},
+    )
+
+    assert response.status_code == 404
+    assert "No tweets found matching query" in response.json()["detail"]
+
+
+def test_v1_social_topic_success(monkeypatch):
+    import app.twitter_client as twitter_client
+
+    mock_tweets = [
+        {
+            "text": "The new release is exceptionally fast and clean!",
+            "likeCount": 100,
+            "retweetCount": 20,
+            "replyCount": 5,
+            "quoteCount": 2,
+            "viewCount": 5000,
+            "bookmarkCount": 35,
+            "createdAt": "2026-11-23T12:00:00Z",
+            "url": "https://x.com/tech/status/1001",
+            "author": {"username": "techlead"},
+        },
+        {
+            "text": "Terrible customer experience and completely unresponsive support.",
+            "likeCount": 12,
+            "retweetCount": 3,
+            "replyCount": 1,
+            "quoteCount": 0,
+            "viewCount": 600,
+            "bookmarkCount": 1,
+            "createdAt": "2026-11-23T12:05:00Z",
+            "url": "https://x.com/user/status/1002",
+            "author": {"username": "frustrated_user"},
+        },
+    ]
+
+    monkeypatch.setattr(twitter_client, "fetch_tweets", lambda _q: mock_tweets)
+
+    response = client.post(
+        "/api/v1/social/topic",
+        json={"query": "release performance", "limit": 10},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["query"] == "release performance"
+    assert data["total_tweets"] == 2
+    assert len(data["results"]) == 2
+    assert "summary" in data
+    assert "intelligence" in data
+    assert "X-Request-ID" in response.headers
+
