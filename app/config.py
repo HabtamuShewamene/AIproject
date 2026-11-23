@@ -59,3 +59,23 @@ MIN_INPUT_CHARS: int = int(
 API_TITLE = "SentiAI — AI Sentiment Analysis API"
 
 API_VERSION = "2.0.0"
+
+# Maximum number of items in a single batch prediction request
+MAX_BATCH_SIZE: int = int(os.getenv("MAX_BATCH_SIZE", "50"))
+
+# Request timeout in seconds for social scraping and model inference
+REQUEST_TIMEOUT_SECONDS: int = int(os.getenv("REQUEST_TIMEOUT_SECONDS", "30"))
+
+# Allowed CORS origins
+CORS_ORIGINS: list[str] = [
+    origin.strip()
+    for origin in os.getenv(
+        "CORS_ORIGINS",
+        "http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001",
+    ).split(",")
+    if origin.strip()
+]
+
+# Structured logging level
+LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO").upper()
+
