@@ -108,6 +108,16 @@ def _model_version() -> str:
     return _MODEL_VERSION
 
 
+def is_model_ready() -> tuple[bool, str]:
+    """Check if model and tokenizer load successfully; returns (ready, version_or_error)."""
+    try:
+        _load_model_bundle()
+        return True, _model_version()
+    except Exception as exc:
+        return False, str(exc)
+
+
+
 # ---------------------------------------------------------------------------
 # Core inference
 # ---------------------------------------------------------------------------

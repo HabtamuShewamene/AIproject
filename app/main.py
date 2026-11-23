@@ -58,7 +58,7 @@ class TweetRequest(BaseModel):
 
 
 # =========================================
-# ROOT ROUTE
+# ROOT & OPERATIONAL HEALTH PROBES
 # =========================================
 
 @app.get("/")
@@ -67,6 +67,37 @@ def root():
     return {
         "message": "Sentiment API is running"
     }
+
+
+@app.get("/health/live")
+def health_live():
+    return {"status": "alive"}
+
+
+@app.get("/health/ready")
+def health_ready():
+    from app import predictor
+    checker = getattr(predictor, "is_model_ready", None)
+    if checker:
+        ready, info = checker()
+        if ready:
+            return {
+                "status": "ready",
+                "model_loaded": True,
+                "model_version": info,
+            }
+        return {
+            "status": "not_ready",
+            "model_loaded": False,
+            "error": info,
+        }
+    return {
+        "status": "ready",
+        "model_loaded": True,
+        "model_version": "unknown",
+    }
+
+
 
 
 # =========================================

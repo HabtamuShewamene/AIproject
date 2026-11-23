@@ -16,6 +16,8 @@ def load_app_with_stubs():
         "sentiment": "positive",
         "confidence": 0.99,
     }
+    predictor_module.is_model_ready = lambda: (True, "bert-test-v1")
+
     twitter_module.fetch_tweet = lambda url: {
         "text": "tweet body",
         "language": "en",
@@ -40,6 +42,29 @@ def test_root_endpoint_returns_running_message():
 
     assert response.status_code == 200
     assert response.json() == {"message": "Sentiment API is running"}
+
+
+def test_health_live_endpoint():
+    app_main = load_app_with_stubs()
+    client = TestClient(app_main.app)
+
+    response = client.get("/health/live")
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "alive"}
+
+
+def test_health_ready_endpoint():
+    app_main = load_app_with_stubs()
+    client = TestClient(app_main.app)
+
+    response = client.get("/health/ready")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert "status" in data
+    assert "model_loaded" in data
+
 
 
 def test_predict_endpoint_returns_mocked_prediction():
