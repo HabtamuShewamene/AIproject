@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.accessibility import build_aria_metadata
 from app.config import API_TITLE, API_VERSION, CORS_ORIGINS
 from app.explainability import build_evidence_bundle
 from app.intelligence_service import build_item_intelligence, build_topic_intelligence
@@ -284,6 +285,14 @@ def enhanced_sentiment_analysis(text: str):
         probabilities=prediction.get("probabilities", {}),
     )
 
+    # Phase 6: attach ARIA semantic metadata for frontend assistive technology
+    aria = build_aria_metadata(
+        sentiment=sentiment,
+        confidence=confidence,
+        low_confidence=bool(prediction.get("low_confidence", False)),
+        language=prediction.get("language", "en"),
+    )
+
     return {
         "text": text,
         "original_text": prediction.get("original_text", text),
@@ -299,6 +308,7 @@ def enhanced_sentiment_analysis(text: str):
         "latency_ms": prediction.get("latency_ms", 0.0),
         "intelligence": intelligence,
         "evidence": evidence,
+        "aria": aria,
     }
 
 
@@ -537,8 +547,10 @@ def analyze_topic(data: TopicRequest):
 # =========================================
 from app.routers.v1_predict import router as v1_predict_router
 from app.routers.v1_social import router as v1_social_router
+from app.routers.v1_accessibility import router as v1_a11y_router
 
 app.include_router(v1_predict_router)
 app.include_router(v1_social_router)
+app.include_router(v1_a11y_router)
 
 
