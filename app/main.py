@@ -2,9 +2,12 @@ from contextlib import asynccontextmanager
 import logging
 import sys
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import API_TITLE, API_VERSION, CORS_ORIGINS
 from app.intelligence_service import build_item_intelligence, build_topic_intelligence
@@ -58,6 +61,40 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# =========================================
+# GLOBAL EXCEPTION HANDLERS (Phase 4)
+# =========================================
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    request_id = getattr(request.state, "request_id", None) or request.headers.get("X-Request-ID")
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": "HTTPException",
+            "detail": exc.detail,
+            "status_code": exc.status_code,
+            "request_id": request_id,
+        },
+        headers={"X-Request-ID": request_id} if request_id else {},
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    request_id = getattr(request.state, "request_id", None) or request.headers.get("X-Request-ID")
+    return JSONResponse(
+        status_code=422,
+        content={
+            "error": "ValidationError",
+            "detail": exc.errors(),
+            "status_code": 422,
+            "request_id": request_id,
+        },
+        headers={"X-Request-ID": request_id} if request_id else {},
+    )
 
 
 
