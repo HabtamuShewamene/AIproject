@@ -16,7 +16,9 @@ GUARANTEED_CONTRACT_KEYS = {
     "low_confidence",
     "probabilities",
     "processing_status",
+    "latency_ms",
 }
+
 
 EXPECTED_PROBABILITY_CLASSES = {"negative", "neutral", "positive"}
 
@@ -42,6 +44,8 @@ def test_predict_sentiment_types():
     assert isinstance(result["low_confidence"], bool)
     assert isinstance(result["probabilities"], dict)
     assert isinstance(result["processing_status"], str)
+    assert isinstance(result["latency_ms"], float)
+
 
 
 def test_probabilities_sum_to_one_and_have_correct_classes():

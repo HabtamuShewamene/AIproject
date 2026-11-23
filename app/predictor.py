@@ -25,8 +25,10 @@ default magic:
 from __future__ import annotations
 
 import json
+import time
 from functools import lru_cache
 from pathlib import Path
+
 
 import torch
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
@@ -171,8 +173,10 @@ def predict_sentiment(text: str) -> dict:
 
     See module docstring for the guaranteed response schema.
     """
+    start_time = time.perf_counter()
     original_text = str(text).strip()
     processing_status = "ok"
+
 
     # --- input length validation ---
     if len(original_text) < MIN_INPUT_CHARS:
@@ -230,6 +234,7 @@ def predict_sentiment(text: str) -> dict:
         "low_confidence": low_confidence,
         "probabilities": probabilities,
         "processing_status": processing_status,
+        "latency_ms": round((time.perf_counter() - start_time) * 1000, 2),
     }
 
 
@@ -256,4 +261,6 @@ def _error_response(
         "probabilities": {"negative": 0.0, "neutral": 0.0, "positive": 0.0},
         "processing_status": processing_status,
         "detail": detail,
+        "latency_ms": 0.0,
     }
+
