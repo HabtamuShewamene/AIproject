@@ -1,12 +1,14 @@
-"""Versioned prediction router under /api/v1 (Phase 4)."""
+"""Versioned prediction router under /api/v1 (Phase 4 & 5)."""
 
 from __future__ import annotations
 
 import time
 from collections import Counter
 from fastapi import APIRouter, HTTPException, status
+from pydantic import BaseModel, Field
 
 from app.config import MAX_BATCH_SIZE
+from app.explainability import build_evidence_bundle
 from app.main import enhanced_sentiment_analysis, TextRequest
 from app.schemas import (
     BatchPredictionRequest,
@@ -57,4 +59,32 @@ def predict_batch_v1(data: BatchPredictionRequest):
         "predictions": predictions,
         "summary": summary,
         "batch_latency_ms": batch_latency,
+    }
+
+
+class EvidenceRequest(BaseModel):
+    text: str = Field(..., min_length=3, max_length=2000, description="Text to analyze and explain")
+
+
+@router.post(
+    "/predict/explain",
+    summary="Predict sentiment with full evidence explanation",
+    description=(
+        "Phase 5 endpoint: runs sentiment inference and returns a rich evidence bundle — "
+        "sarcasm signals, keyword polarity, and confidence reasoning — alongside the standard prediction."
+    ),
+)
+def predict_with_explanation(data: EvidenceRequest):
+    result = enhanced_sentiment_analysis(data.text)
+    # evidence is already embedded by enhanced_sentiment_analysis (Phase 5 wiring)
+    # but re-expose it at the top level for clarity
+    return {
+        "text": data.text,
+        "sentiment": result.get("sentiment"),
+        "confidence": result.get("confidence"),
+        "low_confidence": result.get("low_confidence"),
+        "probabilities": result.get("probabilities", {}),
+        "model_version": result.get("model_version"),
+        "evidence": result.get("evidence", {}),
+        "intelligence": result.get("intelligence", {}),
     }
