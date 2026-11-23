@@ -47,10 +47,31 @@ async def lifespan(app: FastAPI):
     logger.info("SentiAI application shutting down cleanly.")
 
 
+openapi_tags = [
+    {
+        "name": "Operational Health",
+        "description": "Liveness, readiness, and runtime model diagnostic probes.",
+    },
+    {
+        "name": "Predictions v1",
+        "description": "Hardened low-latency text and batch sentiment inference.",
+    },
+    {
+        "name": "Social Media v1",
+        "description": "Twitter/X post extraction, topic search, and engagement metrics aggregation.",
+    },
+    {
+        "name": "Legacy Endpoints",
+        "description": "Backward-compatible legacy endpoints (/predict, /analyze-twitter, /analyze-topic).",
+    },
+]
+
 app = FastAPI(
     title=API_TITLE,
+    description="Enterprise Multi-Stage Sentiment Analysis & Social Intelligence API.",
     version=API_VERSION,
     lifespan=lifespan,
+    openapi_tags=openapi_tags,
 )
 
 app.add_middleware(RequestTracingMiddleware)
@@ -124,7 +145,7 @@ class TweetRequest(BaseModel):
 # ROOT & OPERATIONAL HEALTH PROBES
 # =========================================
 
-@app.get("/")
+@app.get("/", tags=["Operational Health"])
 def root():
 
     return {
@@ -132,12 +153,12 @@ def root():
     }
 
 
-@app.get("/health/live")
+@app.get("/health/live", tags=["Operational Health"])
 def health_live():
     return {"status": "alive"}
 
 
-@app.get("/health/ready")
+@app.get("/health/ready", tags=["Operational Health"])
 def health_ready():
     from app import predictor
     checker = getattr(predictor, "is_model_ready", None)
@@ -167,7 +188,7 @@ def health_ready():
 # TEXT SENTIMENT ANALYSIS
 # =========================================
 
-@app.post("/predict")
+@app.post("/predict", tags=["Legacy Endpoints"])
 def predict(data: TextRequest):
 
     result = enhanced_sentiment_analysis(data.text)
@@ -179,7 +200,7 @@ def predict(data: TextRequest):
 # SINGLE TWEET ANALYSIS
 # =========================================
 
-@app.post("/analyze-twitter")
+@app.post("/analyze-twitter", tags=["Legacy Endpoints"])
 def analyze_twitter(data: TweetRequest):
 
     tweet = getattr(_twitter_module(), "fetch_tweet", lambda _url: None)(data.url)
@@ -382,7 +403,7 @@ def aggregate_results(results):
 # TOPIC ANALYSIS
 # =========================================
 
-@app.post("/analyze-topic")
+@app.post("/analyze-topic", tags=["Legacy Endpoints"])
 def analyze_topic(data: TopicRequest):
 
     tweets = getattr(_twitter_module(), "fetch_tweets", lambda _query: [])(data.query)

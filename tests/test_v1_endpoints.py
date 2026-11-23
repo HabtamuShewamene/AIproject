@@ -239,3 +239,25 @@ def test_v1_social_topic_success(monkeypatch):
     assert "intelligence" in data
     assert "X-Request-ID" in response.headers
 
+
+# ---------------------------------------------------------------------------
+# OpenAPI / Swagger Documentation Schema Tests
+# ---------------------------------------------------------------------------
+
+def test_openapi_schema_contains_versioned_routes_and_tags():
+    response = client.get("/openapi.json")
+    assert response.status_code == 200
+    schema = response.json()
+    assert "paths" in schema
+    assert "/api/v1/predict" in schema["paths"]
+    assert "/api/v1/predict/batch" in schema["paths"]
+    assert "/api/v1/social/tweet" in schema["paths"]
+    assert "/api/v1/social/topic" in schema["paths"]
+    assert "/health/live" in schema["paths"]
+    assert "/health/ready" in schema["paths"]
+    assert "tags" in schema
+    tag_names = [t["name"] for t in schema["tags"]]
+    assert "Predictions v1" in tag_names
+    assert "Social Media v1" in tag_names
+    assert "Operational Health" in tag_names
+
