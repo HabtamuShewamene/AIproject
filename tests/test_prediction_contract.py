@@ -59,3 +59,46 @@ def test_model_version_is_non_empty_and_valid():
 
     assert len(result["model_version"]) > 0
     assert result["model_version"] != ""
+
+
+# ---------------------------------------------------------------------------
+# Boundary & Length Tests
+# ---------------------------------------------------------------------------
+
+def test_empty_input_returns_too_short():
+    result = predict_sentiment("")
+
+    assert result["processing_status"] == "too_short"
+    assert result["sentiment"] == "uncertain"
+    assert result["low_confidence"] is True
+    assert result["confidence"] == 0.0
+
+
+def test_whitespace_only_input_returns_too_short():
+    result = predict_sentiment("     ")
+
+    assert result["processing_status"] == "too_short"
+    assert result["sentiment"] == "uncertain"
+    assert result["low_confidence"] is True
+
+
+def test_sub_minimum_length_returns_too_short():
+    result = predict_sentiment("hi")
+
+    assert result["processing_status"] == "too_short"
+    assert result["sentiment"] == "uncertain"
+    assert result["low_confidence"] is True
+    assert "at least 3 characters" in result.get("detail", "")
+
+
+def test_overlong_input_is_truncated_and_flagged():
+    long_text = ("Good morning! " * 200).strip()  # 2799 characters, exceeds MAX_INPUT_CHARS (2000)
+
+    result = predict_sentiment(long_text)
+
+    assert result["processing_status"] == "truncated"
+    assert len(result["text"]) == len(long_text)  # original stripped text preserved
+    assert len(result["translated_text"]) <= 2000  # truncated for model
+    assert result["sentiment"] in {"positive", "neutral", "negative", "uncertain"}
+
+

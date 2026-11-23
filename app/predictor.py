@@ -221,7 +221,7 @@ def predict_sentiment(text: str) -> dict:
     return {
         "text": original_text,
         "original_text": original_text,
-        "translated_text": translated_text if language_status == "translated" else original_text,
+        "translated_text": translated_text if language_status == "translated" else working_text,
         "language": language,
         "language_status": language_status,
         "model_version": _model_version(),
