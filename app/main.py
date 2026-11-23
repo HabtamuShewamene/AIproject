@@ -467,6 +467,9 @@ def analyze_topic(data: TopicRequest):
 # ROUTER REGISTRATION (Phase 4 API v1)
 # =========================================
 from app.routers.v1_predict import router as v1_predict_router
+from app.routers.v1_social import router as v1_social_router
 
 app.include_router(v1_predict_router)
+app.include_router(v1_social_router)
+
 
