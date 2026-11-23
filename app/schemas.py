@@ -30,6 +30,7 @@ class SentimentPredictionResponse(BaseModel):
     processing_status: str = Field(..., description="Execution status: ok, too_short, truncated, translation_failed")
     latency_ms: float = Field(..., ge=0.0, description="Inference latency in milliseconds")
     intelligence: Optional[Dict[str, Any]] = Field(default=None, description="Enriched intelligence signals and explanations")
+    evidence: Optional[Dict[str, Any]] = Field(default=None, description="Phase 5 structured evidence: sarcasm signals, keyword polarity, confidence reasoning")
 
 
 # =========================================

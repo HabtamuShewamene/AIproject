@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import API_TITLE, API_VERSION, CORS_ORIGINS
+from app.explainability import build_evidence_bundle
 from app.intelligence_service import build_item_intelligence, build_topic_intelligence
 from app.middleware import RequestTracingMiddleware
 from app.predictor import predict_sentiment
@@ -274,6 +275,15 @@ def enhanced_sentiment_analysis(text: str):
     if isinstance(intelligence, dict) and "explanation" in intelligence:
         intelligence["explanation"]["signals"] = signals
 
+    # Phase 5: attach structured evidence bundle to every prediction
+    evidence = build_evidence_bundle(
+        text=text,
+        sentiment=sentiment,
+        confidence=confidence,
+        low_confidence=bool(prediction.get("low_confidence", False)),
+        probabilities=prediction.get("probabilities", {}),
+    )
+
     return {
         "text": text,
         "original_text": prediction.get("original_text", text),
@@ -288,6 +298,7 @@ def enhanced_sentiment_analysis(text: str):
         "processing_status": prediction.get("processing_status", "ok"),
         "latency_ms": prediction.get("latency_ms", 0.0),
         "intelligence": intelligence,
+        "evidence": evidence,
     }
 
 
