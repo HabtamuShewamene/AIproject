@@ -189,5 +189,48 @@ def test_translation_failure_is_explicitly_flagged(monkeypatch):
     assert result["processing_status"] == "translation_failed"
 
 
+# ---------------------------------------------------------------------------
+# Edge Cases: Negation, Sarcasm & Emojis
+# ---------------------------------------------------------------------------
+
+def test_negation_inversion_to_negative():
+    result = predict_sentiment("The hotel room was not clean and definitely not quiet.")
+
+    assert result["sentiment"] == "negative"
+    assert result["confidence"] > 0.50
+
+
+def test_negation_inversion_to_positive():
+    result = predict_sentiment("I cannot say anything bad about this restaurant, it was flawless.")
+
+    assert result["sentiment"] == "positive"
+    assert result["confidence"] > 0.50
+
+
+def test_sarcasm_social_media_sample():
+    # Sarcastic text with conflicting positive words ("wonderful", "dreamed") and negative context
+    # correctly triggers either negative or uncertain abstention (never an erroneous high-confidence positive).
+    result = predict_sentiment("Oh wonderful, another three hour delay on the tarmac. Exactly what I dreamed of.")
+
+    assert result["sentiment"] in {"negative", "uncertain"}
+    assert result["sentiment"] != "positive"
+
+
+
+def test_positive_emoji_sentiment():
+    result = predict_sentiment("This brand new feature is so amazingly cool! 😍🎉🔥")
+
+    assert result["sentiment"] == "positive"
+    assert result["confidence"] > 0.80
+
+
+def test_negative_emoji_sentiment():
+    result = predict_sentiment("Completely broken app, crashed five times in ten minutes 😡💔")
+
+    assert result["sentiment"] == "negative"
+    assert result["confidence"] > 0.80
+
+
+
 
 
