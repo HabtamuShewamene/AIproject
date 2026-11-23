@@ -1,10 +1,14 @@
+from contextlib import asynccontextmanager
+import logging
+import sys
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-import sys
 
-
+from app.config import API_TITLE, API_VERSION, CORS_ORIGINS
 from app.intelligence_service import build_item_intelligence, build_topic_intelligence
+from app.middleware import RequestTracingMiddleware
 from app.predictor import predict_sentiment
 from app.sentiment_rules import (
     NEGATIVE_WORDS,
@@ -15,31 +19,46 @@ from app.sentiment_rules import (
 )
 import app.twitter_client as twitter_client
 
+logger = logging.getLogger("sentiai")
+
 
 def _twitter_module():
     return sys.modules.get("app.twitter_client", twitter_client)
 
 
 # =========================================
-# FASTAPI SETUP
+# FASTAPI APPLICATION LIFECYCLE
 # =========================================
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: preload model weights to eliminate cold starts
+    logger.info("Initializing SentiAI application and preloading model bundle...")
+    try:
+        from app.predictor import _load_model_bundle, _model_version
+        _load_model_bundle()
+        logger.info("Model preloaded successfully: %s", _model_version())
+    except Exception as exc:
+        logger.warning("Model preloading deferred or failed at startup: %s", exc)
+    yield
+    logger.info("SentiAI application shutting down cleanly.")
+
+
 app = FastAPI(
-    title="AI Sentiment Analysis API"
+    title=API_TITLE,
+    version=API_VERSION,
+    lifespan=lifespan,
 )
 
+app.add_middleware(RequestTracingMiddleware)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:3001",
-        "http://127.0.0.1:3001",
-    ],
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 
 # =========================================
