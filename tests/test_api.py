@@ -74,8 +74,32 @@ def test_predict_endpoint_returns_mocked_prediction():
     response = client.post("/predict", json={"text": "great job"})
 
     assert response.status_code == 200
-    assert response.json()["sentiment"] == "positive"
-    assert response.json()["translated_text"] == "GREAT JOB"
+    data = response.json()
+    assert data["sentiment"] == "positive"
+    assert data["translated_text"] == "GREAT JOB"
+    assert "model_version" in data
+    assert "language_status" in data
+    assert "low_confidence" in data
+    assert "processing_status" in data
+
+
+def test_predict_endpoint_empty_payload_returns_422():
+    app_main = load_app_with_stubs()
+    client = TestClient(app_main.app)
+
+    response = client.post("/predict", json={})
+
+    assert response.status_code == 422
+
+
+def test_predict_endpoint_blank_text_returns_422():
+    app_main = load_app_with_stubs()
+    client = TestClient(app_main.app)
+
+    response = client.post("/predict", json={"text": ""})
+
+    assert response.status_code == 422
+
 
 
 def test_analyze_twitter_endpoint_returns_tweet_and_metrics():
