@@ -461,3 +461,12 @@ def analyze_topic(data: TopicRequest):
 
         "intelligence": intelligence,
     }
+
+
+# =========================================
+# ROUTER REGISTRATION (Phase 4 API v1)
+# =========================================
+from app.routers.v1_predict import router as v1_predict_router
+
+app.include_router(v1_predict_router)
+
