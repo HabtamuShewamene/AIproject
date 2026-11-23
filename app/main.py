@@ -161,18 +161,31 @@ def enhanced_sentiment_analysis(text: str):
 
     prediction = predict_sentiment(text)
 
-    # Core sentiment and confidence are anchored strictly to the neural model
-    # (no arbitrary heuristic overrides that mask true model predictions).
     sentiment = prediction.get("sentiment", "neutral")
     confidence = float(prediction.get("confidence", 0.0))
-
-    # Detect explanatory signals for intelligence context without mutating model output
     lower_text = (text or "").lower()
+
+    # Detect explanatory cues for intelligence & contextual adjustment
+    sarcasm_flag = bool(contains_sarcasm(lower_text))
+    negation_flag = bool(has_negation(lower_text))
+    pos_hits = count_keywords(lower_text, POSITIVE_WORDS)
+    neg_hits = count_keywords(lower_text, NEGATIVE_WORDS)
+
+    # Contextual refinement for overt sarcasm and negation when model is not overwhelmingly confident
+    if sarcasm_flag and confidence < 0.90:
+        if sentiment == "positive":
+            sentiment = "negative"
+            confidence = min(confidence + 0.10, 0.95)
+
+    if negation_flag:
+        if pos_hits > neg_hits and sentiment == "positive":
+            sentiment = "negative"
+
     signals = {
-        "sarcasm_detected": bool(contains_sarcasm(lower_text)),
-        "negation_detected": bool(has_negation(lower_text)),
-        "positive_cues": count_keywords(lower_text, POSITIVE_WORDS),
-        "negative_cues": count_keywords(lower_text, NEGATIVE_WORDS),
+        "sarcasm_detected": sarcasm_flag,
+        "negation_detected": negation_flag,
+        "positive_cues": pos_hits,
+        "negative_cues": neg_hits,
     }
 
     intelligence = build_item_intelligence(
@@ -196,8 +209,10 @@ def enhanced_sentiment_analysis(text: str):
         "low_confidence": prediction.get("low_confidence", False),
         "probabilities": prediction.get("probabilities", {}),
         "processing_status": prediction.get("processing_status", "ok"),
+        "latency_ms": prediction.get("latency_ms", 0.0),
         "intelligence": intelligence,
     }
+
 
 
 # =========================================
