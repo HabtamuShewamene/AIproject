@@ -231,6 +231,60 @@ def test_negative_emoji_sentiment():
     assert result["confidence"] > 0.80
 
 
+# ---------------------------------------------------------------------------
+# Multilingual & Non-English Tests
+# ---------------------------------------------------------------------------
+
+def test_amharic_positive_sentence(monkeypatch):
+    import app.predictor as predictor
+
+    # Mock translation to avoid live network flakiness in automated testing
+    monkeypatch.setattr(
+        predictor,
+        "translate_to_english",
+        lambda _text: ("This service is very excellent and wonderful.", "am"),
+    )
+
+    result = predictor.predict_sentiment("ይህ አገልግሎት በጣም ምርጥ እና አስደናቂ ነው")
+
+    assert result["language"] == "am"
+    assert result["language_status"] == "translated"
+    assert result["sentiment"] == "positive"
+    assert result["confidence"] > 0.80
+
+
+def test_arabic_positive_sentence(monkeypatch):
+    import app.predictor as predictor
+
+    monkeypatch.setattr(
+        predictor,
+        "translate_to_english",
+        lambda _text: ("This application is wonderful and very excellent.", "ar"),
+    )
+
+    result = predictor.predict_sentiment("هذا التطبيق رائع وممتاز جدا")
+
+    assert result["language"] == "ar"
+    assert result["language_status"] == "translated"
+    assert result["sentiment"] == "positive"
+
+
+def test_code_switching_mixed_language(monkeypatch):
+    import app.predictor as predictor
+
+    monkeypatch.setattr(
+        predictor,
+        "translate_to_english",
+        lambda _text: ("Very beautiful, I really love this app!", "en"),
+    )
+
+    result = predictor.predict_sentiment("Betam konjo new, I really love this app!")
+
+    assert result["sentiment"] == "positive"
+    assert result["processing_status"] == "ok"
+
+
+
 
 
 
