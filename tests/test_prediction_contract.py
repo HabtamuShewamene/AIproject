@@ -102,3 +102,44 @@ def test_overlong_input_is_truncated_and_flagged():
     assert result["sentiment"] in {"positive", "neutral", "negative", "uncertain"}
 
 
+# ---------------------------------------------------------------------------
+# Confidence & Abstention Tests
+# ---------------------------------------------------------------------------
+
+def test_abstention_triggers_uncertain_when_confidence_below_threshold(monkeypatch):
+    import app.predictor as predictor
+
+    # Mock _run_inference to simulate an ambiguous prediction (max prob 0.40 < threshold 0.45)
+    mock_probs = {"negative": 0.35, "neutral": 0.40, "positive": 0.25}
+    monkeypatch.setattr(
+        predictor,
+        "_run_inference",
+        lambda _text: ("uncertain", 0.40, mock_probs),
+    )
+
+    result = predictor.predict_sentiment("This experience was somewhat unremarkable and ambiguous.")
+
+    assert result["sentiment"] == "uncertain"
+    assert result["low_confidence"] is True
+    assert result["confidence"] == 0.40
+    assert result["probabilities"] == mock_probs
+
+
+def test_high_confidence_clears_abstention(monkeypatch):
+    import app.predictor as predictor
+
+    mock_probs = {"negative": 0.05, "neutral": 0.10, "positive": 0.85}
+    monkeypatch.setattr(
+        predictor,
+        "_run_inference",
+        lambda _text: ("positive", 0.85, mock_probs),
+    )
+
+    result = predictor.predict_sentiment("Exceptional service, thoroughly impressed!")
+
+    assert result["sentiment"] == "positive"
+    assert result["low_confidence"] is False
+    assert result["confidence"] == 0.85
+
+
+
