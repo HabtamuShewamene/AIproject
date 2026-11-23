@@ -69,3 +69,58 @@ def test_v1_predict_batch_over_limit_returns_422():
     )
 
     assert response.status_code == 422
+
+
+# ---------------------------------------------------------------------------
+# /api/v1/social/tweet Integration Tests
+# ---------------------------------------------------------------------------
+
+def test_v1_social_tweet_invalid_url_returns_400():
+    response = client.post(
+        "/api/v1/social/tweet",
+        json={"url": "https://invalid-site.com/not-a-tweet"},
+    )
+
+    assert response.status_code == 400
+    assert "Twitter/X post link" in response.json()["detail"]
+
+
+def test_v1_social_tweet_not_found_returns_404(monkeypatch):
+    import app.twitter_client as twitter_client
+
+    monkeypatch.setattr(twitter_client, "fetch_tweet", lambda _url: None)
+
+    response = client.post(
+        "/api/v1/social/tweet",
+        json={"url": "https://x.com/user/status/1234567890"},
+    )
+
+    assert response.status_code == 404
+    assert "could not be retrieved" in response.json()["detail"]
+
+
+def test_v1_social_tweet_success(monkeypatch):
+    import app.twitter_client as twitter_client
+
+    mock_tweet = {
+        "text": "This product launch exceeded all our expectations!",
+        "likes": 42,
+        "retweets": 15,
+        "replies": 3,
+        "quotes": 2,
+    }
+    monkeypatch.setattr(twitter_client, "fetch_tweet", lambda _url: mock_tweet)
+
+    response = client.post(
+        "/api/v1/social/tweet",
+        json={"url": "https://x.com/tech_user/status/9876543210"},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["tweet_text"] == mock_tweet["text"]
+    assert data["metrics"]["likes"] == 42
+    assert data["sentiment"] == "positive"
+    assert "probabilities" in data
+    assert "X-Request-ID" in response.headers
+
