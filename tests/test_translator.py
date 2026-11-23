@@ -45,3 +45,52 @@ def test_translate_to_english_uses_translator_for_non_english(monkeypatch):
 
     assert translated_text == "hello"
     assert language == "es"
+
+
+def test_translate_to_english_handles_translation_failure(monkeypatch):
+    class FailingTranslator:
+        def __init__(self, source, target):
+            pass
+
+        def translate(self, _text):
+            raise RuntimeError("Google API network timeout")
+
+    monkeypatch.setattr(translator, "safe_detect", lambda _text: "fr")
+    monkeypatch.setattr(translator, "GoogleTranslator", FailingTranslator)
+
+    translated_text, language = translator.translate_to_english("bonjour")
+
+    assert translated_text == "bonjour"
+    assert language == "translation_failed"
+
+
+def test_translate_to_english_handles_empty_translation_result(monkeypatch):
+    class EmptyResultTranslator:
+        def __init__(self, source, target):
+            pass
+
+        def translate(self, _text):
+            return "   "
+
+    monkeypatch.setattr(translator, "safe_detect", lambda _text: "de")
+    monkeypatch.setattr(translator, "GoogleTranslator", EmptyResultTranslator)
+
+    translated_text, language = translator.translate_to_english("Guten Tag")
+
+    assert translated_text == "Guten Tag"
+    assert language == "translation_failed"
+
+
+def test_unicode_script_detectors():
+    assert translator.is_amharic("ሰላም ዓለም") is True
+    assert translator.is_amharic("Hello world") is False
+
+    assert translator.is_arabic("مرحبا") is True
+    assert translator.is_arabic("Hello") is False
+
+    assert translator.is_chinese("你好") is True
+    assert translator.is_chinese("Hello") is False
+
+    assert translator.is_japanese("こんにちは") is True
+    assert translator.is_japanese("Hello") is False
+
