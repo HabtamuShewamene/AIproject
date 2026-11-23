@@ -1,55 +1,78 @@
 
-"""Sentiment prediction powered primarily by the trained BERT model."""
+"""Sentiment prediction powered by the trained BERT model.
+
+Prediction contract (Phase 3)
+==============================
+Every call to ``predict_sentiment`` returns a dict with the following
+guaranteed keys so that callers never need to do ad-hoc .get() with
+default magic:
+
+    text            str   – original input (stripped, possibly truncated)
+    original_text   str   – same as ``text``
+    translated_text str   – English text fed to BERT (= text when already EN)
+    language        str   – BCP-47 code, "unknown", or "translation_failed"
+    language_status str   – one of: "english" | "translated" | "translation_failed"
+                            | "unknown" | "unsupported"
+    model_version   str   – value read from config.json ("transformers_version")
+    sentiment       str   – "negative" | "neutral" | "positive" | "uncertain"
+    confidence      float – softmax probability of the winning class (0–1)
+    low_confidence  bool  – True when confidence < ABSTENTION_THRESHOLD
+    probabilities   dict  – {"negative": float, "neutral": float, "positive": float}
+    processing_status str – "ok" | "too_short" | "truncated" | "translation_failed"
+                            | "model_error"
+"""
 
 from __future__ import annotations
 
+import json
 from functools import lru_cache
 from pathlib import Path
 
 import torch
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
-from app.config import MODEL_PATH
-from app.sentiment_rules import (
-    NEGATIVE_WORDS,
-    POSITIVE_WORDS,
-    contains_sarcasm,
-    count_keywords,
-    has_negation,
-    sarcasm_score,
+from app.config import (
+    ABSTENTION_THRESHOLD,
+    MAX_INPUT_CHARS,
+    MIN_INPUT_CHARS,
+    MODEL_PATH,
 )
 from app.translator import translate_to_english
 
 
-LABEL_MAP = {
-    0: "negative",
-    1: "neutral",
-    2: "positive",
-}
+# ---------------------------------------------------------------------------
+# Constants
+# ---------------------------------------------------------------------------
 
-LOCAL_MODEL_FALLBACK = Path(__file__).resolve().parent.parent / "models" / "bert_sentiment"
+LABEL_MAP: dict[int, str] = {0: "negative", 1: "neutral", 2: "positive"}
 
+LOCAL_MODEL_FALLBACK = (
+    Path(__file__).resolve().parent.parent / "models" / "bert_sentiment"
+)
+
+
+# ---------------------------------------------------------------------------
+# Model loading (singleton via lru_cache)
+# ---------------------------------------------------------------------------
 
 @lru_cache(maxsize=1)
-def _load_model_bundle():
+def _load_model_bundle() -> tuple:
+    """Load tokenizer + model once and cache for the process lifetime."""
     model_path = Path(MODEL_PATH)
-    candidate_paths = [model_path]
-
+    candidates = [model_path]
     if not model_path.is_absolute():
-        candidate_paths.append(LOCAL_MODEL_FALLBACK)
+        candidates.append(LOCAL_MODEL_FALLBACK)
 
     last_error: Exception | None = None
-
-    for candidate in candidate_paths:
+    for candidate in candidates:
         if not candidate.exists():
             continue
-
         try:
             tokenizer = AutoTokenizer.from_pretrained(candidate)
             model = AutoModelForSequenceClassification.from_pretrained(candidate)
             model.eval()
             return tokenizer, model
-        except Exception as exc:  # pragma: no cover - runtime safety
+        except Exception as exc:  # pragma: no cover
             last_error = exc
 
     raise RuntimeError(
@@ -57,12 +80,49 @@ def _load_model_bundle():
     ) from last_error
 
 
-def _softmax_scores(logits: torch.Tensor) -> torch.Tensor:
-    return torch.softmax(logits, dim=-1)
+def _get_model_version() -> str:
+    """Read transformers_version from config.json; fall back to 'unknown'."""
+    model_path = Path(MODEL_PATH)
+    if not model_path.is_absolute():
+        model_path = LOCAL_MODEL_FALLBACK
+    cfg_file = model_path / "config.json"
+    try:
+        with open(cfg_file, encoding="utf-8") as fh:
+            cfg = json.load(fh)
+        # Use transformers_version from config; fall back to architectures[0]
+        arch = cfg.get("architectures", ["unknown"])[0]
+        tv = cfg.get("transformers_version", "")
+        return f"{arch}@transformers-{tv}" if tv else arch
+    except Exception:
+        return "unknown"
 
 
-def _predict_with_model(text: str) -> tuple[str, float, dict[str, float]]:
+# Cache so we don't re-read config.json on every request
+_MODEL_VERSION: str = ""
+
+
+def _model_version() -> str:
+    global _MODEL_VERSION
+    if not _MODEL_VERSION:
+        _MODEL_VERSION = _get_model_version()
+    return _MODEL_VERSION
+
+
+# ---------------------------------------------------------------------------
+# Core inference
+# ---------------------------------------------------------------------------
+
+def _run_inference(text: str) -> tuple[str, float, dict[str, float]]:
+    """Run BERT forward pass; return (label, confidence, prob_dict)."""
     tokenizer, model = _load_model_bundle()
+
+    # Resolve label map from model config (overrides hard-coded LABEL_MAP)
+    if hasattr(model, "config") and getattr(model.config, "id2label", None):
+        label_map: dict[int, str] = {
+            int(k): str(v).lower() for k, v in model.config.id2label.items()
+        }
+    else:
+        label_map = LABEL_MAP
 
     inputs = tokenizer(
         text,
@@ -75,75 +135,115 @@ def _predict_with_model(text: str) -> tuple[str, float, dict[str, float]]:
     with torch.no_grad():
         outputs = model(**inputs)
 
-    probs = _softmax_scores(outputs.logits)[0]
+    probs = torch.softmax(outputs.logits, dim=-1)[0]
     label_id = int(torch.argmax(probs).item())
     confidence = float(probs[label_id].item())
 
-    # Dynamically resolve label map from model config or fallback to TweetEval standard
-    label_map = LABEL_MAP
-    if hasattr(model, "config") and hasattr(model.config, "id2label") and model.config.id2label:
-        config_map = model.config.id2label
-        label_map = {
-            int(k): str(v).lower() for k, v in config_map.items()
-        }
-
-    sentiment = label_map.get(label_id, "neutral")
-
-    # Format full probabilities dictionary
-    prob_dict = {
+    prob_dict: dict[str, float] = {
         label_map.get(i, f"class_{i}"): round(float(probs[i].item()), 4)
         for i in range(len(probs))
     }
 
-    return sentiment, round(confidence, 4), prob_dict
+    # Abstention: if no class clears the threshold, return "uncertain"
+    if confidence < ABSTENTION_THRESHOLD:
+        return "uncertain", round(confidence, 4), prob_dict
+
+    return label_map.get(label_id, "uncertain"), round(confidence, 4), prob_dict
 
 
-def _apply_rule_helpers(
-    text: str,
-    sentiment: str,
-    confidence: float,
-) -> tuple[str, float]:
-    """Light correction layer for edge cases when the model is unsure."""
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
 
-    lower_text = (text or "").lower()
+def predict_sentiment(text: str) -> dict:
+    """
+    Analyze the sentiment of ``text`` and return the full prediction contract.
 
-    positive_hits = count_keywords(lower_text, POSITIVE_WORDS)
-    negative_hits = count_keywords(lower_text, NEGATIVE_WORDS)
+    See module docstring for the guaranteed response schema.
+    """
+    original_text = str(text).strip()
+    processing_status = "ok"
 
-    sarcasm_strength = sarcasm_score(lower_text)
+    # --- input length validation ---
+    if len(original_text) < MIN_INPUT_CHARS:
+        return _error_response(
+            original_text,
+            processing_status="too_short",
+            detail=f"Input must be at least {MIN_INPUT_CHARS} characters.",
+        )
 
-    if sarcasm_strength >= 2:
-        if sentiment == "positive" and confidence < 0.95:
-            sentiment = "negative"
-            confidence = min(confidence + 0.08, 0.99)
-        else:
-            confidence = min(confidence + 0.04, 0.99)
-    elif confidence < 0.60:
-        if contains_sarcasm(lower_text) and positive_hits > 0:
-            confidence = min(confidence + 0.05, 0.99)
+    working_text = original_text
+    if len(working_text) > MAX_INPUT_CHARS:
+        working_text = working_text[:MAX_INPUT_CHARS]
+        processing_status = "truncated"
 
-        if has_negation(lower_text) and positive_hits > negative_hits:
-            confidence = min(confidence + 0.03, 0.99)
+    # --- translation ---
+    translated_text, language = translate_to_english(working_text)
 
-    return sentiment, round(confidence, 4)
+    if language == "translation_failed":
+        language_status = "translation_failed"
+        # Feed original (possibly non-English) text to BERT rather than
+        # silently pretending the translation succeeded.
+        text_for_model = working_text
+        processing_status = "translation_failed"
+    elif language == "en":
+        language_status = "english"
+        text_for_model = working_text
+    elif language == "unknown":
+        language_status = "unknown"
+        text_for_model = working_text
+    else:
+        language_status = "translated"
+        text_for_model = translated_text
 
+    # --- BERT inference ---
+    try:
+        sentiment, confidence, probabilities = _run_inference(text_for_model)
+    except Exception as exc:  # pragma: no cover
+        return _error_response(
+            original_text,
+            processing_status="model_error",
+            detail=str(exc),
+        )
 
-def predict_sentiment(text):
-    clean_text = (text or "").strip()
-
-    if not clean_text:
-        raise ValueError("Text is required for sentiment prediction.")
-
-    translated_text, language = translate_to_english(clean_text)
-    model_input = translated_text or clean_text
-    sentiment, confidence, probabilities = _predict_with_model(model_input)
-    sentiment, confidence = _apply_rule_helpers(model_input, sentiment, confidence)
+    low_confidence = confidence < ABSTENTION_THRESHOLD
 
     return {
-        "original_text": clean_text,
-        "translated_text": translated_text or clean_text,
+        "text": original_text,
+        "original_text": original_text,
+        "translated_text": translated_text if language_status == "translated" else original_text,
         "language": language,
+        "language_status": language_status,
+        "model_version": _model_version(),
         "sentiment": sentiment,
         "confidence": confidence,
+        "low_confidence": low_confidence,
         "probabilities": probabilities,
+        "processing_status": processing_status,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Error response helper
+# ---------------------------------------------------------------------------
+
+def _error_response(
+    text: str,
+    *,
+    processing_status: str,
+    detail: str = "",
+) -> dict:
+    return {
+        "text": text,
+        "original_text": text,
+        "translated_text": text,
+        "language": "unknown",
+        "language_status": "unknown",
+        "model_version": _model_version(),
+        "sentiment": "uncertain",
+        "confidence": 0.0,
+        "low_confidence": True,
+        "probabilities": {"negative": 0.0, "neutral": 0.0, "positive": 0.0},
+        "processing_status": processing_status,
+        "detail": detail,
     }
