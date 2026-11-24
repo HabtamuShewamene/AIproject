@@ -11,6 +11,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.accessibility import build_aria_metadata
 from app.config import API_TITLE, API_VERSION, CORS_ORIGINS
+from app.copilot_service import generate_copilot_assistance
 from app.explainability import build_evidence_bundle
 from app.intelligence_service import build_item_intelligence, build_topic_intelligence
 from app.middleware import RequestTracingMiddleware
@@ -22,6 +23,7 @@ from app.sentiment_rules import (
     count_keywords,
     has_negation,
 )
+from app.triage_service import evaluate_business_triage, extract_aspects
 import app.twitter_client as twitter_client
 
 logger = logging.getLogger("sentiai")
@@ -61,6 +63,10 @@ openapi_tags = [
     {
         "name": "Social Media v1",
         "description": "Twitter/X post extraction, topic search, and engagement metrics aggregation.",
+    },
+    {
+        "name": "Enterprise Intelligence v1",
+        "description": "Aspect-based sentiment, urgency triage, AI Copilot assistant, and A/B benchmarking.",
     },
     {
         "name": "Legacy Endpoints",
@@ -293,6 +299,11 @@ def enhanced_sentiment_analysis(text: str):
         language=prediction.get("language", "en"),
     )
 
+    # Phase 7: Aspect-based sentiment analysis, business triage, and copilot assistance
+    aspects = extract_aspects(text, sentiment, confidence)
+    triage = evaluate_business_triage(text, sentiment, confidence)
+    copilot = generate_copilot_assistance(text, sentiment, confidence, triage, aspects)
+
     return {
         "text": text,
         "original_text": prediction.get("original_text", text),
@@ -309,6 +320,9 @@ def enhanced_sentiment_analysis(text: str):
         "intelligence": intelligence,
         "evidence": evidence,
         "aria": aria,
+        "aspects": aspects,
+        "triage": triage,
+        "copilot": copilot,
     }
 
 
@@ -548,9 +562,11 @@ def analyze_topic(data: TopicRequest):
 from app.routers.v1_predict import router as v1_predict_router
 from app.routers.v1_social import router as v1_social_router
 from app.routers.v1_accessibility import router as v1_a11y_router
+from app.routers.v1_enterprise import router as v1_enterprise_router
 
 app.include_router(v1_predict_router)
 app.include_router(v1_social_router)
 app.include_router(v1_a11y_router)
+app.include_router(v1_enterprise_router)
 
 
