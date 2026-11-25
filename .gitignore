@@ -43,4 +43,6 @@ credentials/
 *.backup
 *.zip
 
-frontend/
+frontend/node_modules/
+frontend/.next/
+frontend/test-output.css
