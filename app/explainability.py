@@ -38,7 +38,12 @@ _SARCASM_PATTERNS: List[str] = [
     "wow amazing",
     "just great",
     "just wonderful",
-    "love how",
+    "love how they",
+    "love how it",
+    "love how this",
+    "love how nothing",
+    "love how nobody",
+    "love how no one",
     "love it when",
 ]
 

@@ -12,7 +12,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.accessibility import build_aria_metadata
 from app.config import API_TITLE, API_VERSION, CORS_ORIGINS
 from app.copilot_service import generate_copilot_assistance
-from app.explainability import build_evidence_bundle
+from app.explainability import build_evidence_bundle, extract_sarcasm_evidence
 from app.intelligence_service import build_item_intelligence, build_topic_intelligence
 from app.middleware import RequestTracingMiddleware
 from app.predictor import predict_sentiment
@@ -252,16 +252,21 @@ def enhanced_sentiment_analysis(text: str):
     lower_text = (text or "").lower()
 
     # Detect explanatory cues for intelligence & contextual adjustment
-    sarcasm_flag = bool(contains_sarcasm(lower_text))
+    # Unified sarcasm detection: combine pattern-based (sentiment_rules) with
+    # evidence-based (explainability) so both detectors agree.
+    sarcasm_evidence = extract_sarcasm_evidence(text or "")
+    sarcasm_flag = sarcasm_evidence["is_sarcastic"] or bool(contains_sarcasm(lower_text))
     negation_flag = bool(has_negation(lower_text))
     pos_hits = count_keywords(lower_text, POSITIVE_WORDS)
     neg_hits = count_keywords(lower_text, NEGATIVE_WORDS)
 
-    # Contextual refinement for overt sarcasm and negation when model is not overwhelmingly confident
-    if sarcasm_flag and confidence < 0.90:
-        if sentiment == "positive":
-            sentiment = "negative"
-            confidence = min(confidence + 0.10, 0.95)
+    # Contextual refinement: when sarcasm is detected and the model predicted
+    # positive, always flip to negative regardless of confidence level.
+    # (BERT overconfidently classifies surface-positive words like "wonderful"
+    # even inside clearly sarcastic complaints; the threshold guard was wrong.)
+    if sarcasm_flag and sentiment == "positive":
+        sentiment = "negative"
+        confidence = max(0.60, min(confidence - 0.15, 0.85))
 
     if negation_flag:
         if pos_hits > neg_hits and sentiment == "positive":

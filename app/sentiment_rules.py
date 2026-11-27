@@ -37,28 +37,63 @@ POSITIVE_WORDS = [
 ]
 
 SARCASM_PATTERNS = [
+    # --- Core irony openers ---
     r"oh great",
-    r"yeah right",
+    r"oh wow",
+    r"oh sure",
     r"oh fantastic",
+    r"oh really",
+    r"yeah right",
+    r"right\.",
+    r"sure\.",
+    # --- Positive-word + unambiguous negative-context combos ---
+    r"just wonderful",
+    r"just great",
+    r"just perfect",
+    r"wow amazing",
     r"fantastic, now",
+    r"fantastic\. now",
+    r"excellent, now",
+    r"excellent\. now",
+    # "great job" and "well done" removed — too ambiguous without sarcasm opener
+    # --- Sarcastic love/appreciation (must require negative follow-on context) ---
     r"love that for me",
     r"love waiting",
-    r"amazing\.",
-    r"great job",
-    r"well done",
-    r"excellent, now",
-    r"another .* meeting",
-    r"thanks for nothing",
-    r"works now and i have no idea why",
-    r"nothing says",
+    r"love how .{0,30}(never|always|still|keeps|keeps|broken|fail|slow|late|delay|bad|terrible|awful|annoying|useless|long|again|more|every time)",
+    r"love it when .{0,30}(never|fail|broken|crash|slow|late|delay|always|bad|terrible|awful)",
     r"i (absolutely )?love waiting",
+    r"absolutely love .{0,30}(never|fail|broken|slow|delay|bad)",
+    # --- Delay / failure patterns ---
+    r"another .* delay",
+    r"another .* outage",
+    r"another .* meeting",
+    r"another .* issue",
+    r"zero updates",
+    r"no updates",
+    # --- Context qualifiers that signal sarcasm ---
+    r"as always",
+    r"as per usual",
+    r"as usual",
+    r"totally fine",
+    r"perfectly fine",
+    r"works perfectly",
+    r"works now and i have no idea why",
+    r"what a surprise",
+    r"big surprise",
+    r"shocking",
+    # --- Hyperbolic irony ---
+    r"amazing\.",
+    r"amazing!",
     r"what a brilliant idea",
     r"perfect timing",
+    r"nothing says",
     r"couldn't have gone worse",
     r"this is going so well",
     r"i'm thrilled",
     r"how lovely",
     r"masterpiece again",
+    r"thanks for nothing",
+    r"not at all",
 ]
 
 NEGATION_WORDS = [
