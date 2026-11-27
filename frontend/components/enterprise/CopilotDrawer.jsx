@@ -13,7 +13,7 @@ export default function CopilotDrawer({ activeResult }) {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      content: "Hello! I am your SentiAI Copilot. Ask me anything about this customer's feedback, request customized response drafts, or inquire about churn mitigation tactics.",
+      content: "Hello! I am your X Intelligence Copilot. Ask me anything about this customer's feedback, request customized response drafts, or inquire about churn mitigation tactics.",
     },
   ]);
   const [inputMessage, setInputMessage] = useState("");
@@ -22,10 +22,10 @@ export default function CopilotDrawer({ activeResult }) {
   if (!activeResult) {
     return (
       <div className="glass-card p-6 text-center space-y-3">
-        <Bot size={28} className="mx-auto text-white/30" />
-        <h4 className="text-sm font-semibold text-white/70">AI Copilot Standby</h4>
-        <p className="text-xs text-white/40 max-w-sm mx-auto">
-          Analyze any text or tweet on the Realtime tab or load a batch dataset to activate conversational insights.
+        <Bot size={28} className="mx-auto text-[#71767B]" />
+        <h4 className="text-sm font-semibold text-white/80">AI Copilot Standby</h4>
+        <p className="text-xs text-[#71767B] max-w-sm mx-auto">
+          Analyze any tweet URL or customer review on the Live tab or load a batch dataset to activate conversational insights.
         </p>
       </div>
     );
@@ -36,7 +36,7 @@ export default function CopilotDrawer({ activeResult }) {
   const drivers = copilot.key_drivers || [];
   const suggestedQueries = copilot.suggested_queries || [
     "What action should we prioritize?",
-    "Draft an apology email",
+    "Draft a professional public reply",
     "Explain why this was classified negative",
   ];
 
@@ -88,28 +88,28 @@ export default function CopilotDrawer({ activeResult }) {
   return (
     <div className="glass-card p-5 space-y-4">
       {/* Copilot Header */}
-      <div className="flex items-center justify-between border-b border-white/10 pb-3">
+      <div className="flex items-center justify-between border-b border-[#202A36] pb-3">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-[#00F5A0]/15 text-[#00F5A0]">
+          <div className="p-2 rounded-xl bg-[#1D9BF0]/15 text-[#1D9BF0] border border-[#1D9BF0]/30">
             <Bot size={18} />
           </div>
           <div>
             <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
-              SentiAI Copilot
-              <span className="px-1.5 py-0.2 rounded text-[9px] bg-[#00F5A0]/20 text-[#00F5A0] font-mono">
-                ENTERPRISE
+              X Intelligence Copilot
+              <span className="px-1.5 py-0.2 rounded text-[9px] bg-[#1D9BF0]/20 text-[#1D9BF0] font-mono border border-[#1D9BF0]/30">
+                PRO
               </span>
             </h3>
-            <p className="text-[11px] text-white/40">Conversational Intelligence & Resolution Drafter</p>
+            <p className="text-[11px] text-[#71767B]">Conversational Intelligence & Resolution Drafter</p>
           </div>
         </div>
 
         {/* Tab switch */}
-        <div className="flex gap-1 p-0.5 rounded-lg bg-black/40 border border-white/10 text-xs">
+        <div className="flex gap-1 p-0.5 rounded-lg bg-[#090D12] border border-[#202A36] text-xs">
           <button
             onClick={() => setActiveTab("drafts")}
             className={`px-3 py-1 rounded-md transition-all font-medium ${
-              activeTab === "drafts" ? "bg-white/15 text-white" : "text-white/40 hover:text-white"
+              activeTab === "drafts" ? "bg-[#1D9BF0] text-white" : "text-[#71767B] hover:text-white"
             }`}
           >
             Resolution Drafts
@@ -117,7 +117,7 @@ export default function CopilotDrawer({ activeResult }) {
           <button
             onClick={() => setActiveTab("chat")}
             className={`px-3 py-1 rounded-md transition-all font-medium ${
-              activeTab === "chat" ? "bg-white/15 text-white" : "text-white/40 hover:text-white"
+              activeTab === "chat" ? "bg-[#1D9BF0] text-white" : "text-[#71767B] hover:text-white"
             }`}
           >
             Interactive Chat
@@ -127,15 +127,15 @@ export default function CopilotDrawer({ activeResult }) {
 
       {/* Key Drivers Banner */}
       {drivers.length > 0 && (
-        <div className="p-3 rounded-lg bg-black/25 border border-white/5 space-y-1.5">
-          <p className="text-[10px] font-semibold tracking-wider uppercase text-white/40 flex items-center gap-1">
-            <Compass size={12} className="text-[#00F5A0]" />
+        <div className="p-3 rounded-lg bg-[#090D12] border border-[#202A36] space-y-1.5">
+          <p className="text-[10px] font-semibold tracking-wider uppercase text-[#71767B] flex items-center gap-1">
+            <Compass size={12} className="text-[#1D9BF0]" />
             Key Strategic Drivers
           </p>
-          <ul className="text-xs text-white/75 space-y-1">
+          <ul className="text-xs text-[#8899A6] space-y-1">
             {drivers.map((d, i) => (
               <li key={i} className="flex items-start gap-1.5">
-                <span className="text-[#00F5A0] mt-0.5">•</span>
+                <span className="text-[#1D9BF0] mt-0.5">•</span>
                 <span>{d}</span>
               </li>
             ))}
@@ -158,8 +158,8 @@ export default function CopilotDrawer({ activeResult }) {
                   onClick={() => setDraftType(tab.id)}
                   className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
                     draftType === tab.id
-                      ? "bg-[#00F5A0] text-black font-semibold"
-                      : "bg-white/5 text-white/50 hover:text-white"
+                      ? "bg-[#1D9BF0] text-white font-semibold"
+                      : "bg-[#090D12] text-[#71767B] hover:text-white border border-[#202A36]"
                   }`}
                 >
                   {tab.label}
@@ -169,14 +169,14 @@ export default function CopilotDrawer({ activeResult }) {
 
             <button
               onClick={handleCopy}
-              className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all border border-white/10"
+              className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg bg-[#090D12] hover:bg-[#151C25] text-white transition-all border border-[#202A36]"
             >
-              {copied ? <Check size={13} className="text-[#00F5A0]" /> : <Copy size={13} />}
+              {copied ? <Check size={13} className="text-[#16A36A]" /> : <Copy size={13} />}
               {copied ? "Copied!" : "Copy Response"}
             </button>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-black/35 border border-white/10 text-xs text-white/80 font-sans leading-relaxed whitespace-pre-wrap select-all">
+          <div className="p-3.5 rounded-xl bg-[#090D12] border border-[#202A36] text-xs text-[#F7F9F9] font-sans leading-relaxed whitespace-pre-wrap select-all">
             {currentDraft}
           </div>
         </div>
@@ -189,15 +189,15 @@ export default function CopilotDrawer({ activeResult }) {
                 key={idx}
                 className={`p-2.5 rounded-xl max-w-[85%] leading-relaxed ${
                   m.role === "user"
-                    ? "ml-auto bg-[#00F5A0]/20 border border-[#00F5A0]/30 text-white"
-                    : "bg-white/5 border border-white/10 text-white/80"
+                    ? "ml-auto bg-[#1D9BF0]/20 border border-[#1D9BF0]/40 text-white"
+                    : "bg-[#090D12] border border-[#202A36] text-[#8899A6]"
                 }`}
               >
                 <p className="whitespace-pre-wrap">{m.content}</p>
               </div>
             ))}
             {loadingChat && (
-              <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-white/50 text-xs w-28 animate-pulse">
+              <div className="p-2.5 rounded-xl bg-[#090D12] border border-[#202A36] text-[#71767B] text-xs w-28 animate-pulse">
                 Thinking...
               </div>
             )}
@@ -209,7 +209,7 @@ export default function CopilotDrawer({ activeResult }) {
               <button
                 key={i}
                 onClick={() => handleSendMessage(sq)}
-                className="text-[10px] px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-white/60 hover:text-[#00F5A0] hover:border-[#00F5A0]/30 transition-all text-left"
+                className="text-[10px] px-2.5 py-1 rounded-full bg-[#090D12] border border-[#202A36] text-[#71767B] hover:text-[#1D9BF0] hover:border-[#1D9BF0]/40 transition-all text-left"
               >
                 💬 {sq}
               </button>
@@ -228,13 +228,13 @@ export default function CopilotDrawer({ activeResult }) {
               type="text"
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
-              placeholder="Ask Copilot a question about this feedback..."
-              className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-white/25 focus:border-[#00F5A0] outline-none"
+              placeholder="Ask Copilot a question about public perception..."
+              className="flex-1 bg-[#090D12] border border-[#202A36] rounded-lg px-3 py-2 text-xs text-white placeholder-[#71767B]/60 focus:border-[#1D9BF0] outline-none"
             />
             <button
               type="submit"
               disabled={loadingChat || !inputMessage.trim()}
-              className="p-2 rounded-lg bg-[#00F5A0] text-black hover:brightness-110 disabled:opacity-40"
+              className="p-2 rounded-lg bg-[#1D9BF0] text-white hover:bg-[#1A8CD8] disabled:opacity-40"
             >
               <Send size={14} />
             </button>

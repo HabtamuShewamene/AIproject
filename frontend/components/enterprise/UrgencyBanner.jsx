@@ -10,16 +10,16 @@ export default function UrgencyBanner({ triage }) {
     switch (level) {
       case "Critical":
         return {
-          border: "border-red-500/40",
-          bg: "bg-red-500/10",
-          text: "text-red-400",
-          badge: "bg-red-500/20 text-red-300 border-red-500/40",
+          border: "border-[#D65353]/50",
+          bg: "bg-[#D65353]/10",
+          text: "text-[#D65353]",
+          badge: "bg-[#D65353]/20 text-[#D65353] border-[#D65353]/40",
           icon: ShieldAlert,
           title: "Critical Priority Escalation",
         };
       case "High":
         return {
-          border: "border-orange-500/40",
+          border: "border-orange-500/50",
           bg: "bg-orange-500/10",
           text: "text-orange-400",
           badge: "bg-orange-500/20 text-orange-300 border-orange-500/40",
@@ -38,10 +38,10 @@ export default function UrgencyBanner({ triage }) {
         };
       default:
         return {
-          border: "border-[#00F5A0]/30",
-          bg: "bg-[#00F5A0]/10",
-          text: "text-[#00F5A0]",
-          badge: "bg-[#00F5A0]/20 text-[#00F5A0] border-[#00F5A0]/40",
+          border: "border-[#16A36A]/30",
+          bg: "bg-[#16A36A]/10",
+          text: "text-[#16A36A]",
+          badge: "bg-[#16A36A]/20 text-[#16A36A] border-[#16A36A]/40",
           icon: CheckCircle,
           title: "Standard SLA Operational Flow",
         };
@@ -60,7 +60,7 @@ export default function UrgencyBanner({ triage }) {
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {churn_risk && churn_risk !== "None" && (
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-500/20 text-red-300 border border-red-500/30">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#D65353]/20 text-[#D65353] border border-[#D65353]/40">
               🚨 Churn Risk: {churn_risk}
             </span>
           )}
@@ -68,7 +68,7 @@ export default function UrgencyBanner({ triage }) {
             Urgency: {urgency}
           </span>
           {intent && (
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-white/10 text-white/80 border border-white/10">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#090D12] text-[#8899A6] border border-[#202A36]">
               🏷️ {intent}
             </span>
           )}
@@ -76,17 +76,17 @@ export default function UrgencyBanner({ triage }) {
       </div>
 
       {executive_takeaway && (
-        <p className="text-xs text-white/70 leading-relaxed font-medium">
+        <p className="text-xs text-[#F7F9F9]/80 leading-relaxed font-medium">
           {executive_takeaway}
         </p>
       )}
 
       {recommended_action && (
-        <div className="flex items-start gap-2 pt-2 border-t border-white/10 text-xs">
-          <span className="text-[#00F5A0] font-semibold flex items-center gap-1 shrink-0">
+        <div className="flex items-start gap-2 pt-2 border-t border-[#202A36] text-xs">
+          <span className="text-[#1D9BF0] font-semibold flex items-center gap-1 shrink-0">
             <ArrowRight size={13} /> Recommended Action:
           </span>
-          <span className="text-white/85">{recommended_action}</span>
+          <span className="text-[#F7F9F9]">{recommended_action}</span>
         </div>
       )}
     </div>

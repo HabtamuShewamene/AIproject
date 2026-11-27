@@ -8,7 +8,16 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        brand: "#00F5A0",
+        x: {
+          bg: "#090D12",
+          surface: "#151C25",
+          border: "#202A36",
+          blue: "#1D9BF0",
+          positive: "#16A36A",
+          negative: "#D65353",
+          neutral: "#71767B",
+        },
+        brand: "#1D9BF0",
       },
     },
   },

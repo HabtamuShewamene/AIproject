@@ -76,20 +76,20 @@ export default function BenchmarkView() {
       <div className="glass-card p-5 space-y-3">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
-            <Scale size={20} className="text-[#00F5A0]" />
+            <Scale size={20} className="text-[#1D9BF0]" />
             <h2 className="text-base font-bold text-white">A/B Benchmark & Competitive Compare</h2>
           </div>
-          <span className="text-xs text-white/40">Side-by-side Sentiment Delta Analysis</span>
+          <span className="text-xs text-[#71767B]">Side-by-side Sentiment Delta Analysis</span>
         </div>
 
         {/* Preset quick buttons */}
         <div className="flex items-center gap-2 flex-wrap pt-1">
-          <span className="text-xs text-white/50">Load Preset:</span>
+          <span className="text-xs text-[#71767B]">Load Preset:</span>
           {PRESET_BENCHMARKS.map((p, idx) => (
             <button
               key={idx}
               onClick={() => loadPreset(p)}
-              className="text-xs px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-[#00F5A0] border border-white/10 transition-all"
+              className="text-xs px-2.5 py-1 rounded-lg bg-[#090D12] hover:bg-[#151C25] text-[#8899A6] hover:text-[#1D9BF0] border border-[#202A36] transition-all"
             >
               ⚖️ {p.name}
             </button>
@@ -100,41 +100,41 @@ export default function BenchmarkView() {
       {/* Input Columns */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Column A */}
-        <div className="glass-card p-4 space-y-3 border-l-2 border-l-[#00F5A0]">
+        <div className="glass-card p-4 space-y-3 border-l-2 border-l-[#1D9BF0]">
           <div className="flex items-center justify-between">
             <input
               type="text"
               value={labelA}
               onChange={(e) => setLabelA(e.target.value)}
-              className="bg-transparent font-bold text-sm text-[#00F5A0] outline-none border-b border-transparent focus:border-[#00F5A0]"
+              className="bg-transparent font-bold text-sm text-[#1D9BF0] outline-none border-b border-transparent focus:border-[#1D9BF0]"
             />
-            <span className="text-[10px] text-white/40 uppercase font-mono">Variant A</span>
+            <span className="text-[10px] text-[#71767B] uppercase font-mono">Variant A</span>
           </div>
           <textarea
             value={textA}
             onChange={(e) => setTextA(e.target.value)}
             rows={4}
-            className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-xs text-white placeholder-white/25 outline-none focus:border-[#00F5A0] resize-none"
+            className="w-full bg-[#090D12] border border-[#202A36] rounded-lg p-3 text-xs text-white placeholder-[#71767B]/60 outline-none focus:border-[#1D9BF0] resize-none"
             placeholder="Feedback, review, or campaign post for Variant A..."
           />
         </div>
 
         {/* Column B */}
-        <div className="glass-card p-4 space-y-3 border-l-2 border-l-[#60a5fa]">
+        <div className="glass-card p-4 space-y-3 border-l-2 border-l-[#8899A6]">
           <div className="flex items-center justify-between">
             <input
               type="text"
               value={labelB}
               onChange={(e) => setLabelB(e.target.value)}
-              className="bg-transparent font-bold text-sm text-[#60a5fa] outline-none border-b border-transparent focus:border-[#60a5fa]"
+              className="bg-transparent font-bold text-sm text-[#8899A6] outline-none border-b border-transparent focus:border-[#8899A6]"
             />
-            <span className="text-[10px] text-white/40 uppercase font-mono">Variant B</span>
+            <span className="text-[10px] text-[#71767B] uppercase font-mono">Variant B</span>
           </div>
           <textarea
             value={textB}
             onChange={(e) => setTextB(e.target.value)}
             rows={4}
-            className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-xs text-white placeholder-white/25 outline-none focus:border-[#60a5fa] resize-none"
+            className="w-full bg-[#090D12] border border-[#202A36] rounded-lg p-3 text-xs text-white placeholder-[#71767B]/60 outline-none focus:border-[#8899A6] resize-none"
             placeholder="Feedback, review, or campaign post for Variant B..."
           />
         </div>
@@ -144,14 +144,14 @@ export default function BenchmarkView() {
         <button
           onClick={() => handleRunBenchmark()}
           disabled={loading || !textA.trim() || !textB.trim()}
-          className="px-6 py-2.5 rounded-xl bg-[#00F5A0] text-black font-semibold text-sm hover:brightness-110 disabled:opacity-40 transition-all"
+          className="px-6 py-2.5 rounded-xl bg-[#1D9BF0] text-white font-semibold text-sm hover:bg-[#1A8CD8] disabled:opacity-40 transition-all shadow-[0_0_15px_rgba(29,155,240,0.3)]"
         >
           {loading ? "Computing Differential..." : "Run Side-by-Side Benchmark"}
         </button>
       </div>
 
       {error && (
-        <div className="glass-card p-4 border-red-500/40 text-red-400 text-xs">
+        <div className="glass-card p-4 border-[#D65353]/40 text-[#D65353] text-xs">
           ⚠️ {error}
         </div>
       )}
@@ -160,21 +160,21 @@ export default function BenchmarkView() {
       {comparison && (
         <div className="glass-card p-6 space-y-5 animate-in fade-in duration-300">
           {/* Winner Banner */}
-          <div className="p-4 rounded-xl bg-black/40 border border-[#00F5A0]/30 flex items-center justify-between flex-wrap gap-4">
+          <div className="p-4 rounded-xl bg-[#090D12] border border-[#1D9BF0]/40 flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-[#00F5A0]/20 text-[#00F5A0]">
+              <div className="p-2.5 rounded-xl bg-[#1D9BF0]/20 text-[#1D9BF0]">
                 <Trophy size={22} />
               </div>
               <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-white/40">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-[#71767B]">
                   Competitive Verdict
                 </span>
                 <h3 className="text-base font-bold text-white">
-                  Leader: <span className="text-[#00F5A0]">{comparison.winner}</span>
+                  Leader: <span className="text-[#1D9BF0]">{comparison.winner}</span>
                 </h3>
               </div>
             </div>
-            <p className="text-xs text-white/70 max-w-md">{comparison.verdict}</p>
+            <p className="text-xs text-[#8899A6] max-w-md">{comparison.verdict}</p>
           </div>
 
           {/* Cards comparison */}
@@ -182,8 +182,8 @@ export default function BenchmarkView() {
             {[comparison.option_a, comparison.option_b].map((opt, i) => (
               <div
                 key={i}
-                className={`p-4 rounded-xl border bg-black/25 space-y-3 ${
-                  opt.label === comparison.winner ? "border-[#00F5A0]/40" : "border-white/10"
+                className={`p-4 rounded-xl border bg-[#090D12] space-y-3 ${
+                  opt.label === comparison.winner ? "border-[#1D9BF0]/50" : "border-[#202A36]"
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -191,25 +191,25 @@ export default function BenchmarkView() {
                   <span
                     className={`px-2 py-0.5 rounded-full text-xs font-semibold capitalize ${
                       opt.sentiment === "positive"
-                        ? "bg-[#00F5A0]/15 text-[#00F5A0]"
+                        ? "bg-[#16A36A]/15 text-[#16A36A]"
                         : opt.sentiment === "negative"
-                        ? "bg-red-500/15 text-red-400"
-                        : "bg-yellow-500/15 text-yellow-300"
+                        ? "bg-[#D65353]/15 text-[#D65353]"
+                        : "bg-[#71767B]/15 text-[#71767B]"
                     }`}
                   >
                     {opt.sentiment} ({(opt.confidence * 100).toFixed(1)}%)
                   </span>
                 </div>
 
-                <p className="text-xs text-white/65 italic border-l-2 border-white/10 pl-2.5">
+                <p className="text-xs text-[#8899A6] italic border-l-2 border-[#202A36] pl-2.5">
                   "{opt.text}"
                 </p>
 
                 {opt.triage && (
-                  <div className="text-[11px] text-white/50 space-y-1 pt-1 border-t border-white/5">
+                  <div className="text-[11px] text-[#71767B] space-y-1 pt-1 border-t border-[#202A36]">
                     <div>
-                      <span className="text-white/35">Urgency:</span> {opt.triage.urgency} ·{" "}
-                      <span className="text-white/35">Intent:</span> {opt.triage.intent}
+                      <span className="text-[#71767B]">Urgency:</span> {opt.triage.urgency} ·{" "}
+                      <span className="text-[#71767B]">Intent:</span> {opt.triage.intent}
                     </div>
                   </div>
                 )}
